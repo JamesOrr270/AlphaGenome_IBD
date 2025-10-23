@@ -1,8 +1,6 @@
 from alphagenome.data import genome
 from alphagenome.models import dna_client
 from alphagenome.models import variant_scorers
-
-import matplotlib.pyplot as plt
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
@@ -10,7 +8,7 @@ import numpy as np
 # Intialising the model and also inserting my API key
 dna_model = dna_client.create('AIzaSyBEl5Qrcby0IUGO2MPUxo62R5y2naLHhDc')
 
-# SNP_data needs to be from HG38 human genome or mouse mm10 genome
+# SNP_data needs to be from HG38 human genome or mouse mm10 genome, I have dropped any variants with none or -, should find a way to not do this
 SNP_data = pd.read_csv('SNPs_loc/test.txt',sep="_",header=None,names=['variant_id','CHROM','POS','REF','ALT'])
 SNP_data = SNP_data.replace(['None','-'],np.nan)
 SNP_data = SNP_data.dropna()
@@ -22,8 +20,8 @@ for column in required_columns:
   if column not in SNP_data.columns:
     raise ValueError(f'VCF file is missing required column: {column}.')
  
-#  Need to look at what the best value for this is, should be based on what I want to find out, I chose this one as it is the most comprehensive
-sequence_length = '2KB'
+#  Choose the sequence length. Output the effect of the SNP on all relavant genes within this area. Options are 2KB, 16KB, 100KB, 500KB, 1MB
+sequence_length = '1MB'
 # Makes the sequence length in the form that alphaGenome requires
 sequence_length = dna_client.SUPPORTED_SEQUENCE_LENGTHS[f'SEQUENCE_LENGTH_{sequence_length}']
 
@@ -120,5 +118,5 @@ df_scores = variant_scorers.tidy_scores(results)
 filtered_df_scores = df_scores[df_scores['biosample_name'].isin(['large intestine','small intestine'])]
 
 if download_predictions:
-  filtered_df_scores.to_csv('Results/results_test.csv', index=False)
+  filtered_df_scores.to_csv('Results/results_test_2.csv', index=False)
   
