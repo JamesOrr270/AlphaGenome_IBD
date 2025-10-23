@@ -1,11 +1,7 @@
-from alphagenome import colab_utils
-from alphagenome.data import gene_annotation
 from alphagenome.data import genome
-from alphagenome.data import transcript as transcript_utils
-from alphagenome.interpretation import ism
 from alphagenome.models import dna_client
 from alphagenome.models import variant_scorers
-from alphagenome.visualization import plot_components
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from tqdm import tqdm
@@ -15,7 +11,7 @@ import numpy as np
 dna_model = dna_client.create('AIzaSyBEl5Qrcby0IUGO2MPUxo62R5y2naLHhDc')
 
 # SNP_data needs to be from HG38 human genome or mouse mm10 genome
-SNP_data = pd.read_csv('Data/SNPs_loc/GWAS_study_GRCh38.txt',sep="_",header=None,names=['variant_id','CHROM','POS','REF','ALT'])
+SNP_data = pd.read_csv('SNPs_loc/test.txt',sep="_",header=None,names=['variant_id','CHROM','POS','REF','ALT'])
 SNP_data = SNP_data.replace(['None','-'],np.nan)
 SNP_data = SNP_data.dropna()
 
@@ -27,7 +23,7 @@ for column in required_columns:
     raise ValueError(f'VCF file is missing required column: {column}.')
  
 #  Need to look at what the best value for this is, should be based on what I want to find out, I chose this one as it is the most comprehensive
-sequence_length = '1MB'
+sequence_length = '2KB'
 # Makes the sequence length in the form that alphaGenome requires
 sequence_length = dna_client.SUPPORTED_SEQUENCE_LENGTHS[f'SEQUENCE_LENGTH_{sequence_length}']
 
@@ -119,8 +115,10 @@ for i, SNP_row in tqdm(SNP_data.iterrows(), total=len(SNP_data)):
   )
   results.append(variant_scores)
 
+# Tidy and filter the scores
 df_scores = variant_scorers.tidy_scores(results)
+filtered_df_scores = df_scores[df_scores['biosample_name'].isin(['large intestine','small intestine'])]
 
 if download_predictions:
-  df_scores.to_csv('/Users/jamesorr/Documents/Imperial/Project 1/AlphaGenome_IBD/Results/Results_NoneReomved.csv', index=False)
+  filtered_df_scores.to_csv('Results/results_test.csv', index=False)
   

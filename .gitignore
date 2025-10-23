@@ -5,3 +5,5 @@ venv/
 .venv/
 *.egg-info/
 SNPs_loc/
+Results/
+.DS_Store
