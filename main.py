@@ -9,19 +9,17 @@ import numpy as np
 dna_model = dna_client.create('AIzaSyBEl5Qrcby0IUGO2MPUxo62R5y2naLHhDc')
 
 # SNP_data needs to be from HG38 human genome or mouse mm10 genome, I have dropped any variants with none or -, should find a way to not do this
-SNP_data = pd.read_csv('SNPs_loc/test.txt',sep="_",header=None,names=['variant_id','CHROM','POS','REF','ALT'])
-SNP_data = SNP_data.replace(['None','-'],np.nan)
-SNP_data = SNP_data.dropna()
+SNP_data = pd.read_csv('SNPs_loc/test.txt',sep="_",header=None,names=['variant_id','CHROM','POS','REF','ALT']).drop_duplicates().fillna('').replace('-','')
 
 # Checking weather all of the required columns are presant
 required_columns = ['variant_id', 'CHROM', 'POS', 'REF', 'ALT']
 
 for column in required_columns:
   if column not in SNP_data.columns:
-    raise ValueError(f'VCF file is missing required column: {column}.')
+    raise ValueError(f'File is missing required column: {column}.')
  
 #  Choose the sequence length. Output the effect of the SNP on all relavant genes within this area. Options are 2KB, 16KB, 100KB, 500KB, 1MB
-sequence_length = '1MB'
+sequence_length = '100KB'
 # Makes the sequence length in the form that alphaGenome requires
 sequence_length = dna_client.SUPPORTED_SEQUENCE_LENGTHS[f'SEQUENCE_LENGTH_{sequence_length}']
 
@@ -115,8 +113,12 @@ for i, SNP_row in tqdm(SNP_data.iterrows(), total=len(SNP_data)):
 
 # Tidy and filter the scores
 df_scores = variant_scorers.tidy_scores(results)
-filtered_df_scores = df_scores[df_scores['biosample_name'].isin(['large intestine','small intestine'])]
+# Code to filter by gene onotology: filtered_df_scores = df_scores[df_scores['biosample_name'].isin(['large intestine','small intestine'])]
 
-if download_predictions:
-  filtered_df_scores.to_csv('Results/results_test_2.csv', index=False)
+# df_scores['variant_id'] = df_scores['variant_id'].astype(str)
+# mean_scores = df_scores.groupby(['variant_id'])[['raw_score','quantile_score']].mean()
+
+
+# if download_predictions:
+#   df_scores.to_csv('Results/results_test_2.csv', index=False)
   
