@@ -113,12 +113,11 @@ for i, SNP_row in tqdm(SNP_data.iterrows(), total=len(SNP_data)):
 
 # Tidy and filter the scores
 df_scores = variant_scorers.tidy_scores(results)
-# Code to filter by gene onotology: filtered_df_scores = df_scores[df_scores['biosample_name'].isin(['large intestine','small intestine'])]
+filtered_df_scores = df_scores[df_scores['biosample_name'].isin(['colonic mucosa','transverse colon','sigmoid colon','mucosa of descending colon','left colon','colonic mucosa'])]
 
 # df_scores['variant_id'] = df_scores['variant_id'].astype(str)
 # mean_scores = df_scores.groupby(['variant_id'])[['raw_score','quantile_score']].mean()
 
-
-# if download_predictions:
-#   df_scores.to_csv('Results/results_test_2.csv', index=False)
+if download_predictions:
+  filtered_df_scores.to_csv('Results/results_test_2.csv', index=False)
   
