@@ -19,7 +19,8 @@ for column in required_columns:
     raise ValueError(f'File is missing required column: {column}.')
  
 #  Choose the sequence length. Output the effect of the SNP on all relavant genes within this area. Options are 2KB, 16KB, 100KB, 500KB, 1MB
-sequence_length = '100KB'
+sequence_length = '1MB'
+
 # Makes the sequence length in the form that alphaGenome requires
 sequence_length = dna_client.SUPPORTED_SEQUENCE_LENGTHS[f'SEQUENCE_LENGTH_{sequence_length}']
 
