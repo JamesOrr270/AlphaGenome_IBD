@@ -9,7 +9,7 @@ SNPs['POS'] = SNPs['POS'].astype(int)
 # Sort based on chromosome and position
 SNPs = SNPs.sort_values(['CHROM','POS']).reset_index(drop=True)
 
-Close_SNPs = []
+close_SNPs = []
 
 for chrom, chrom_snps in SNPs.groupby('CHROM'):
 
@@ -22,12 +22,11 @@ for chrom, chrom_snps in SNPs.groupby('CHROM'):
             if distance > 1000000:
                 break
 
-            
-            Close_SNPs.append({'SNP1': chrom_snps.iloc[i]['variant_id'],'SNP2': chrom_snps.iloc[j]['variant_id'],'Distance': distance})
+            close_SNPs.append({'SNP1': chrom_snps.iloc[i]['variant_id'],'SNP2': chrom_snps.iloc[j]['variant_id'],'Distance': distance,'Chromosome':chrom_snps.iloc[j]['CHROM']})
 
             j+=1
 
-Close_SNPs_df = pd.DataFrame(Close_SNPs)
+close_SNPs_df = pd.DataFrame(close_SNPs)
 
-Close_SNPs_df.to_csv('Results/close_SNPs_extended.csv', index=False)
+close_SNPs_df.to_csv('Results/close_SNPs_extended.csv', index=False)
 
