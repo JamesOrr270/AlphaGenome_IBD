@@ -7,3 +7,5 @@ data_sort.py - Takes excel file detailing IBD SNPs and puts them in the correct 
 tissue_type.py - Lists the tissue types available for use with AlphaGenome
 
 local_SNP.py - Idenifies SNPs that are within 1 MB with each other 
+
+close_SNP_remove.py - Removes SNPs that are close to each other from the main datasets

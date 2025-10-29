@@ -8,4 +8,4 @@ output_metadata = dna_model.output_metadata(
     dna_client.Organism.HOMO_SAPIENS
 ).concatenate()
 
-output_metadata.to_csv('Results/tissue_types.csv',index=False)
+output_metadata.to_csv('Results/tissue_types/tissue_types.csv',index=False)

@@ -28,5 +28,5 @@ for chrom, chrom_snps in SNPs.groupby('CHROM'):
 
 close_SNPs_df = pd.DataFrame(close_SNPs)
 
-close_SNPs_df.to_csv('Results/close_SNPs_extended.csv', index=False)
+close_SNPs_df.to_csv('Results/close_SNPs/close_SNPs_extended.csv', index=False)
 
