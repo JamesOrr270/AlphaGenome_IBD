@@ -9,7 +9,10 @@ file_name = input("Input data file path: ")
 result_file_name = input("Result file name: ")
 
 # Intialising the model and also inserting my API key
-dna_model = dna_client.create('AIzaSyBEl5Qrcby0IUGO2MPUxo62R5y2naLHhDc')
+with open('Data/key.txt', 'r') as file:
+    API_key = file.read()
+  
+dna_model = dna_client.create(API_key)
 
 # SNP_data needs to be from HG38 human genome or mouse mm10 genome, I have dropped any variants with none or -, should find a way to not do this
 SNP_data = pd.read_csv(file_name,sep="_",header=None,names=['variant_id','CHROM','POS','REF','ALT']).drop_duplicates().fillna('').replace('-','')
