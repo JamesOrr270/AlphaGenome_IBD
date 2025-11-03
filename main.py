@@ -4,9 +4,8 @@ from alphagenome.models import variant_scorers
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
+import sys
 
-file_name = input("Input data file path: ")
-result_file_name = input("Result file name: ")
 
 # Intialising the model and also inserting my API key
 with open('Data/key.txt', 'r') as file:
@@ -15,7 +14,7 @@ with open('Data/key.txt', 'r') as file:
 dna_model = dna_client.create(API_key)
 
 # SNP_data needs to be from HG38 human genome or mouse mm10 genome, I have dropped any variants with none or -, should find a way to not do this
-SNP_data = pd.read_csv(file_name,sep="_",header=None,names=['variant_id','CHROM','POS','REF','ALT']).drop_duplicates().fillna('').replace('-','')
+SNP_data = pd.read_csv(sys.argv[1],sep="_",header=None,names=['variant_id','CHROM','POS','REF','ALT']).drop_duplicates().fillna('').replace('-','')
 
 # Checking weather all of the required columns are presant
 required_columns = ['variant_id', 'CHROM', 'POS', 'REF', 'ALT']
@@ -124,13 +123,11 @@ filtered_df_scores = df_scores[
   df_scores['biosample_name'].isin(['colonic mucosa','transverse colon','sigmoid colon','mucosa of descending colon','left colon','colonic mucosa'])&
   (df_scores['gene_type'].isin(['protein_coding','miRNA']))].copy()
 
-# filtered_df_scores['mean_plus_2SD'] = (filtered_df_scores['quantile_score']-filtered_df_scores['quantile_score'].mean())/filtered_df_scores['quantile_score'].std()
+# Filtering by 2SDs from the mean to find significant results
 significant_df_scores = filtered_df_scores[
   (filtered_df_scores['raw_score'] > (filtered_df_scores['raw_score'].mean()+ (2*filtered_df_scores['raw_score'].std())))|
   (filtered_df_scores['raw_score']< filtered_df_scores['raw_score'].mean()-(2*filtered_df_scores['raw_score'].std()))]
-# df_scores['variant_id'] = df_scores['variant_id'].astype(str)
-# mean_scores = df_scores.groupby(['variant_id'])[['raw_score','quantile_score']].mean()
 
 if download_predictions:
-  significant_df_scores.to_csv(f'Results/AlphaGenome/{result_file_name}.csv', index=False)
+  significant_df_scores.to_csv(f'Results/AlphaGenome/{sys.argv[2]}.csv', index=False)
   filtered_df_scores.to_csv('Results/AlphaGenome/nonsig_check.csv')
