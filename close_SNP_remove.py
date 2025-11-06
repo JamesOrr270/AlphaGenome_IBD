@@ -1,6 +1,6 @@
 import pandas as pd
 
-close_SNPs = pd.read_csv('Results/close_SNPs_extended.csv')
+close_SNPs = pd.read_csv('Results/close_SNPs/close_SNPs_extended.csv')
 IBD_SNPs = pd.read_csv('Data/IBD_SNPS.txt', header = None)[0].values.tolist()
 CD_SNPs = pd.read_csv('Data/CD_SNPS.txt',header = None)[0].values.tolist()
 UC_SNPs = pd.read_csv('Data/UC_SNPS.txt',header = None)[0].values.tolist()
