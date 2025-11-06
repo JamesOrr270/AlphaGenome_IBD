@@ -1,62 +1,76 @@
 import pandas as pd
-import openpyxl
 
-# Loading in the SNP data and the variant types that we consider non-coding
-SNP_file = pd.read_excel('Data/Liu. et al.2023 studys 320 SNPs.xlsx',skiprows=1)
-with open('Data/non_coding_types.txt','r') as f:
-    non_coding_types= f.read().splitlines()
+# Function that takes the data and puts into into the relavant files for analysis
+def load_data(SNP_path,non_coding_types_path):
+    SNP_file = pd.read_excel(SNP_path,skiprows=1)
+    with  open(non_coding_types_path, 'r') as f:
+        non_coding_types = f.read().splitlines()
+    return SNP_file, non_coding_types
 
 # Splitting into non-coding SNPs and coding SNPs
-def is_non_coding(consequence):
+def is_non_coding(consequence,non_coding_types):
     if pd.isna(consequence):
         return False
     consequence_list = [item.strip() for item in str(consequence).split(',')]
     return any(item in non_coding_types for item in consequence_list)
 
-non_coding_mask = SNP_file['Consequence'].apply(is_non_coding)
+# Creates a mask that can filter if coding or non-coding
+def filter_non_coding_snps(SNP_file, non_coding_types):
+    non_coding_mask = SNP_file['Consequence'].apply(
+        lambda x: is_non_coding(x, non_coding_types)
+    )
+    return SNP_file[non_coding_mask], SNP_file[~non_coding_mask]
 
-non_coding_SNPs = SNP_file[non_coding_mask]
-coding_SNPs = SNP_file[~non_coding_mask]
+# Puts the strings into the correct format
+def create_snp_string(row):
+    return f"{row.RS_ID}_chr{row.Chr_index}_{row.Pos_index}_{row.A1_index}_{row.A2_index}"
 
-All_SNPS = []
-CD_SNPS = []
-UC_SNPS = []
+# Splits SNPs into the differnet subtypes
+def IBD_type_split(non_coding_SNPs,subtype):
+    filtered = non_coding_SNPs[non_coding_SNPs['Phenotype_loci'] == subtype]
+    return [create_snp_string(row) for row in filtered.itertuples()]
 
-SNP_file_CD = non_coding_SNPs[non_coding_SNPs['Phenotype_loci']=='CD']
-SNP_file_UC = non_coding_SNPs[non_coding_SNPs['Phenotype_loci']=='UC']
-SNP_file_IBD = non_coding_SNPs[non_coding_SNPs['Phenotype_loci']=='IBD']
+# Aggregates the lists of different SNPs
+def aggregate_snps(non_coding_SNPs):
+   
+    cd_snps = IBD_type_split(non_coding_SNPs, 'CD')
+    uc_snps = IBD_type_split(non_coding_SNPs, 'UC')
+    ibd_snps = IBD_type_split(non_coding_SNPs, 'IBD')
+    
+    all_snps = cd_snps + uc_snps + ibd_snps
+    cd_snps_combined = cd_snps + ibd_snps
+    uc_snps_combined = uc_snps + ibd_snps
+    
+ 
+    return {
+        'All': list(dict.fromkeys(all_snps)),
+        'CD': list(dict.fromkeys(cd_snps_combined)),
+        'UC': list(dict.fromkeys(uc_snps_combined))
+    }
 
-for row in SNP_file_CD.itertuples():
-    SNP_string = f"{row.RS_ID}_chr{row.Chr_index}_{row.Pos_index}_{row.A1_index}_{row.A2_index}"
-    All_SNPS.append(SNP_string)
-    CD_SNPS.append(SNP_string)
+# Saves the SNP lists to a file
+def write_snp_list(filepath, snp_list):
+    with open(filepath, 'w') as file:
+        file.write('\n'.join(snp_list) + '\n')
 
-for row in SNP_file_UC.itertuples():
-    SNP_string = f"{row.RS_ID}_chr{row.Chr_index}_{row.Pos_index}_{row.A1_index}_{row.A2_index}"
-    All_SNPS.append(SNP_string)
-    UC_SNPS.append(SNP_string)
+def main():
+    SNP_file, non_coding_types = load_data(
+        'Data/Liu. et al.2023 studys 320 SNPs.xlsx',
+        'Data/non_coding_types.txt'
+    )
+    
+    non_coding_SNPs, coding_SNPs = filter_non_coding_snps(SNP_file, non_coding_types)
+    
+    snp_collections = aggregate_snps(non_coding_SNPs)
+    
+    write_snp_list('Data/IBD_SNPS_test.txt', snp_collections['All'])
+    write_snp_list('Data/CD_SNPS_test.txt', snp_collections['CD'])
+    write_snp_list('Data/UC_SNPS_test.txt', snp_collections['UC'])
+    
 
-for row in SNP_file_IBD.itertuples():
-    SNP_string = f"{row.RS_ID}_chr{row.Chr_index}_{row.Pos_index}_{row.A1_index}_{row.A2_index}"
-    All_SNPS.append(SNP_string)
-    UC_SNPS.append(SNP_string)
-    CD_SNPS.append(SNP_string)
+if __name__ == "__main__":
+    main()
 
-All_SNPS_unique = list(dict.fromkeys(All_SNPS))
-CD_SNPS_unique = list(dict.fromkeys(CD_SNPS))
-UC_SNPS_unique = list(dict.fromkeys(UC_SNPS))
-
-with open('Data/IBD_SNPS.txt','w') as file:
-    for item in All_SNPS_unique:
-        file.write(item + "\n")
-
-with open('Data/CD_SNPS.txt','w') as file:
-    for item in CD_SNPS_unique:
-        file.write(item + "\n")
-
-with open('Data/UC_SNPS.txt','w') as file:
-    for item in UC_SNPS_unique:
-        file.write(item + "\n")
 
 
 
