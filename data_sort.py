@@ -1,15 +1,30 @@
 import pandas as pd
 import openpyxl
 
+# Loading in the SNP data and the variant types that we consider non-coding
 SNP_file = pd.read_excel('Data/Liu. et al.2023 studys 320 SNPs.xlsx',skiprows=1)
+with open('Data/non_coding_types.txt','r') as f:
+    non_coding_types= f.read().splitlines()
+
+# Splitting into non-coding SNPs and coding SNPs
+def is_non_coding(consequence):
+    if pd.isna(consequence):
+        return False
+    consequence_list = [item.strip() for item in str(consequence).split(',')]
+    return any(item in non_coding_types for item in consequence_list)
+
+non_coding_mask = SNP_file['Consequence'].apply(is_non_coding)
+
+non_coding_SNPs = SNP_file[non_coding_mask]
+coding_SNPs = SNP_file[~non_coding_mask]
 
 All_SNPS = []
 CD_SNPS = []
 UC_SNPS = []
 
-SNP_file_CD = SNP_file[SNP_file['Phenotype_loci']=='CD']
-SNP_file_UC = SNP_file[SNP_file['Phenotype_loci']=='UC']
-SNP_file_IBD = SNP_file[SNP_file['Phenotype_loci']=='IBD']
+SNP_file_CD = non_coding_SNPs[non_coding_SNPs['Phenotype_loci']=='CD']
+SNP_file_UC = non_coding_SNPs[non_coding_SNPs['Phenotype_loci']=='UC']
+SNP_file_IBD = non_coding_SNPs[non_coding_SNPs['Phenotype_loci']=='IBD']
 
 for row in SNP_file_CD.itertuples():
     SNP_string = f"{row.RS_ID}_chr{row.Chr_index}_{row.Pos_index}_{row.A1_index}_{row.A2_index}"

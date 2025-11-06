@@ -120,8 +120,8 @@ for i, SNP_row in tqdm(SNP_data.iterrows(), total=len(SNP_data)):
 # Tidy and filter the scores
 df_scores = variant_scorers.tidy_scores(results)
 filtered_df_scores = df_scores[
-  df_scores['biosample_name'].isin(['colonic mucosa','transverse colon','sigmoid colon','mucosa of descending colon','left colon','colonic mucosa'])&
-  (df_scores['gene_type'].isin(['protein_coding','miRNA']))].copy()
+  df_scores['biosample_name'].isin(['colonic mucosa','transverse colon','sigmoid colon','mucosa of descending colon','left colon'])&
+  (df_scores['gene_type'].isin(['protein_coding','miRNA','lncRNA']))].copy()
 
 # Filtering by 2SDs from the mean to find significant results
 significant_df_scores = filtered_df_scores[
