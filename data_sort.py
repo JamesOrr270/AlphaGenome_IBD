@@ -63,9 +63,9 @@ def main():
     
     snp_collections = aggregate_snps(non_coding_SNPs)
     
-    write_snp_list('Data/IBD_SNPS_test.txt', snp_collections['All'])
-    write_snp_list('Data/CD_SNPS_test.txt', snp_collections['CD'])
-    write_snp_list('Data/UC_SNPS_test.txt', snp_collections['UC'])
+    write_snp_list('Data/IBD_SNPS.txt', snp_collections['All'])
+    write_snp_list('Data/CD_SNPS.txt', snp_collections['CD'])
+    write_snp_list('Data/UC_SNPS.txt', snp_collections['UC'])
     
 
 if __name__ == "__main__":
