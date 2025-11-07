@@ -28,7 +28,7 @@ def main():
         
         snps = load_SNPs(f'Data/{disease}_SNPS.txt')
         filtered = remove_close_SNPs(snps, close_SNPs)
-        write_to_file(filtered, f'Results/close_SNPs_Removed/{disease}_SNPs_removed_test2.txt') 
+        write_to_file(filtered, f'Results/close_SNPs_Removed/{disease}_SNPs_removed_test3.txt') 
 
 if __name__ == '__main__':
     main()

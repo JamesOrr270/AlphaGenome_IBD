@@ -53,23 +53,24 @@ def write_snp_list(filepath, snp_list):
     with open(filepath, 'w') as file:
         file.write('\n'.join(snp_list) + '\n')
 
-def main():
-    SNP_file, non_coding_types = load_data(
-        'Data/Liu. et al.2023 studys 320 SNPs.xlsx',
-        'Data/non_coding_types.txt'
-    )
+def main(file_SNP,file_non_coding):
+    SNP_df, non_coding_types = load_data(file_SNP,file_non_coding)
     
-    non_coding_SNPs, coding_SNPs = filter_non_coding_snps(SNP_file, non_coding_types)
+    non_coding_SNPs, coding_SNPs = filter_non_coding_snps(SNP_df, non_coding_types)
     
     snp_collections = aggregate_snps(non_coding_SNPs)
     
-    write_snp_list('Data/IBD_SNPS.txt', snp_collections['All'])
-    write_snp_list('Data/CD_SNPS.txt', snp_collections['CD'])
-    write_snp_list('Data/UC_SNPS.txt', snp_collections['UC'])
+    write_snp_list('Data/IBD_SNPS_test_2.txt', snp_collections['All'])
+    write_snp_list('Data/CD_SNPS_test_2.txt', snp_collections['CD'])
+    write_snp_list('Data/UC_SNPS_test_2.txt', snp_collections['UC'])
     
 
 if __name__ == "__main__":
-    main()
+    
+    SNP_file = 'Data/Liu. et al.2023 studys 320 SNPs.xlsx'
+    non_coding_types_file = 'Data/non_coding_types.txt'
+
+    main(SNP_file,non_coding_types_file)
 
 
 
