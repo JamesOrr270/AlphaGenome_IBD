@@ -20,7 +20,7 @@ def write_to_file(data,filepath):
 
 def main():
 
-    close_SNPs = close_SNPs_load('Results/close_SNPs/close_SNPs_extended.csv')
+    close_SNPs = close_SNPs_load('AlphaGenome/Results/close_SNPs/close_SNPs_extended.csv')
 
     diseases = ['IBD', 'CD', 'UC']
      

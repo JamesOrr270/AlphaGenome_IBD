@@ -32,13 +32,13 @@ def write_to_file(close_SNPs_df,filepath):
 
 
 def main():
-    SNPs = read_and_sort('Data/IBD_SNPS.txt')
+    SNPs = read_and_sort('AlphaGenome/Data/IBD_SNPS.txt')
 
     SNPs['POS'] = SNPs['POS'].astype(int)
     
     close_SNPs_df = find_close_SNPs(SNPs)
 
-    write_to_file(close_SNPs_df,'Results/close_SNPs/close_SNPs_extended_test.csv')
+    write_to_file(close_SNPs_df,'AlphaGenome/Results/close_SNPs/close_SNPs_extended.csv')
 
 if __name__ == "__main__":
     main()

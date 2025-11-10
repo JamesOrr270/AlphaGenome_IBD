@@ -8,7 +8,7 @@ import sys
 
 
 # Intialising the model and also inserting my API key
-with open('Data/key.txt', 'r') as file:
+with open('AlphaGenome/Data/key.txt', 'r') as file:
     API_key = file.read()
   
 dna_model = dna_client.create(API_key)
@@ -129,5 +129,4 @@ significant_df_scores = filtered_df_scores[
   (filtered_df_scores['raw_score']< filtered_df_scores['raw_score'].mean()-(2*filtered_df_scores['raw_score'].std()))]
 
 if download_predictions:
-  significant_df_scores.to_csv(f'Results/AlphaGenome/{sys.argv[2]}.csv', index=False)
-  filtered_df_scores.to_csv('Results/AlphaGenome/nonsig_check.csv')
+  significant_df_scores.to_csv(f'AlphaGenome/Results/AlphaGenome{sys.argv[2]}.csv', index=False)
