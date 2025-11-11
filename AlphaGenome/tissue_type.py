@@ -2,7 +2,10 @@ from alphagenome import colab_utils
 from alphagenome.models import dna_client
 import pandas as pd
 
-dna_model = dna_client.create('AIzaSyBEl5Qrcby0IUGO2MPUxo62R5y2naLHhDc')
+with open('AlphaGenome/Data/key.txt', 'r') as file:
+    API_key = file.read()
+
+dna_model = dna_client.create(API_key)
 
 output_metadata = dna_model.output_metadata(
     dna_client.Organism.HOMO_SAPIENS
