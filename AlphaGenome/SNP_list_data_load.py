@@ -3,7 +3,9 @@ This file takes the text files that yufan sent me and and outs them all in the s
 It also adds an extra term at the end which is blank for most the files but for the UC and CD files adds this on the end
 
 Issues:
--For some reason the amount of SNPs has increased 
+-For some reason the amount of SNPs has increased - it is because adding the CD and UC there are now duplicates that are
+no longer duplicates as they have the added CD or UC, need to find a way to remove these (could aslo try doing in data
+integration file)
 """
 
 import pandas as pd
