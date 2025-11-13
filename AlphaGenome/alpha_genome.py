@@ -42,9 +42,6 @@ score_splice_sites = False
 score_splice_site_usage = False
 score_splice_junctions = False
 
-# This determines weather the results are saved 
-download_predictions = True
-
 # This puts the species in a form that alphagenome will understand
 organism = 'human'
 organism_map = {
@@ -117,16 +114,20 @@ for i, SNP_row in tqdm(SNP_data.iterrows(), total=len(SNP_data)):
   )
   results.append(variant_scores)
 
-# Tidy and filter the scores
-df_scores = variant_scorers.tidy_scores(results)
-filtered_df_scores = df_scores[
+# Tidy scoers
+df_scores = variant_scorers.tidy_scores(results)  
+
+# Filtering by 2SDs from the mean to find significant results
+significant_df_scores = df_scores[
+  (df_scores['raw_score'] > (df_scores['raw_score'].mean()+ (2*df_scores['raw_score'].std())))|
+  (df_scores['raw_score']< df_scores['raw_score'].mean()-(2*df_scores['raw_score'].std()))]
+
+# Filter scores
+
+filtered_df_scores = significant_df_scores[
   df_scores['biosample_name'].isin(['colonic mucosa','transverse colon','sigmoid colon','mucosa of descending colon','left colon'])&
   (df_scores['gene_type'].isin(['protein_coding','miRNA','lncRNA']))].copy()
 
-# Filtering by 2SDs from the mean to find significant results
-significant_df_scores = filtered_df_scores[
-  (filtered_df_scores['raw_score'] > (filtered_df_scores['raw_score'].mean()+ (2*filtered_df_scores['raw_score'].std())))|
-  (filtered_df_scores['raw_score']< filtered_df_scores['raw_score'].mean()-(2*filtered_df_scores['raw_score'].std()))]
-
-if download_predictions:
-  significant_df_scores.to_csv(f'AlphaGenome/Results/AlphaGenome{sys.argv[2]}.csv', index=False)
+# Save Files
+significant_df_scores.to_csv(f'AlphaGenome/Results/AlphaGenome{sys.argv[2]}_all_scores.csv', index=False)
+filtered_df_scores.to_csv(f'AlphaGenome/Results/AlphaGenome{sys.argv[2]}_filtered_scores.csv', index=False)
