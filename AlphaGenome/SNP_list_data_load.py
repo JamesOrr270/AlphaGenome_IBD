@@ -2,36 +2,27 @@
 This file takes the text files that yufan sent me and and outs them all in the same file writing them to a new text file.
 It also adds an extra term at the end which is blank for most the files but for the UC and CD files adds this on the end
 
-Issues:
--For some reason the amount of SNPs has increased - it is because adding the CD and UC there are now duplicates that are
-no longer duplicates as they have the added CD or UC, need to find a way to remove these (could aslo try doing in data
-integration file)
+Caveat: 
+- Have to make sure that the text files with the disease information are always concatonated secound as the logic of this program
+keeps the last term of a match. 
 """
 
 import pandas as pd
 
-with open('AlphaGenome/Data/SNP_rawdata_yufan/GWAS_study_GRCh38.txt','r') as file:
-    SNP1 = [line + "_" for line in file.read().strip().split('\n')]
+# Load Files
+SNP1 = pd.read_csv('AlphaGenome/Data/SNP_rawdata_yufan/GWAS_study_GRCh38.txt', sep='_', names = ['RSID','CHR','POS','REF','ALT','DIS'],header=None)
+SNP2 = pd.read_csv('AlphaGenome/Data/SNP_rawdata_yufan/IBD_SNPs_list_GRCh38.txt', sep='_', names = ['RSID','CHR','POS','REF','ALT','DIS'],header=None)
+SNP3 = pd.read_csv('AlphaGenome/Data/SNP_rawdata_yufan/Liu_et_al_2023_GRCh38.txt', sep='_', names = ['RSID','CHR','POS','REF','ALT','DIS'],header=None)
+SNP4 = pd.read_csv('AlphaGenome/Data/SNP_rawdata_yufan/Original_iSNP_CD_list_GRCh38.txt', sep='_', names = ['RSID','CHR','POS','REF','ALT','DIS'],header=None)
+SNP5 = pd.read_csv('AlphaGenome/Data/SNP_rawdata_yufan/Original_iSNP_UC_list_GRCh38.txt', sep='_', names = ['RSID','CHR','POS','REF','ALT','DIS'],header=None)
 
-with open('AlphaGenome/Data/SNP_rawdata_yufan/IBD_SNPs_list_GRCh38.txt','r') as file:
-    SNP2 = [line + "_" for line in file.read().strip().split('\n')]
+# Add disease annotation to the relavant files
+SNP4['DIS'] = 'CD'
+SNP5['DIS'] = 'UC'
 
-with open('AlphaGenome/Data/SNP_rawdata_yufan/Liu_et_al_2023_GRCh38.txt','r') as file:
-    SNP3 = [line + "_" for line in file.read().strip().split('\n')]
+# concatonate the files and drop duplicates based on everthing but disease
+total_SNPs = pd.concat([SNP1,SNP2,SNP3,SNP4,SNP5]).drop_duplicates(subset= ['RSID','CHR','POS','REF','ALT'],keep='last')
 
-with open('AlphaGenome/Data/SNP_rawdata_yufan/Original_iSNP_CD_list_GRCh38.txt','r') as file:
-    SNP4 = [line + "_CD" for line in file.read().strip().split('\n')]
-
-with open('AlphaGenome/Data/SNP_rawdata_yufan/Original_iSNP_UC_list_GRCh38.txt','r') as file:
-    SNP5 = [line + "_UC" for line in file.read().strip().split('\n')]
-
-combined_SNPs = SNP1 + SNP2 + SNP3 + SNP4 + SNP5
-print(f"Combined SNPs: {len(combined_SNPs)}")
-
-total_SNPs = pd.Series(combined_SNPs).drop_duplicates()
-
-print(f"Total SNPs: {len(total_SNPs)}")
-with open('AlphaGenome/Results/dataset_combination/SNP_list_Yufan.txt','w') as file:
-    for SNP in total_SNPs:
-        file.write(f"{SNP}\n")
+# Write to a text file in the correct format
+total_SNPs.to_csv('AlphaGenome/Results/test_todelete/total_SNPs_test.txt',sep='_',header=None,index=None)
 
