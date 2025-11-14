@@ -8,9 +8,6 @@ This program merges the two files together so that the new file contains saved a
 
 To do:
 - Validate
-- Prevent duplicates i.e. CD,CD
-
-
 """
 import pandas as pd
 import numpy as np
@@ -35,9 +32,13 @@ website_SNP_refined= website_SNP_refined.groupby('RSID')['TYPE'].apply(
     lambda x: ' '.join(x.dropna().unique())
 ).reset_index()
 
+website_SNP_refined['TYPE'] = website_SNP_refined['TYPE'].replace('', np.nan)
 
+website_SNP_refined.to_csv('AlphaGenome/Results/test_todelete/website_SNPs')
 # Merge the two datasets together based on RSID but keeping all of the raw SNPs and essentially just adding any additonal disease
 Raw_SNPs= Raw_SNPs.drop_duplicates()
+Raw_SNPs.to_csv('AlphaGenome/Results/test_todelete/raw_SNPs')
+
 merged_SNPs = pd.merge(Raw_SNPs, website_SNP_refined, on='RSID', how='left', suffixes=('_raw','_web'))
 
 def combine_types(row):
@@ -55,7 +56,7 @@ def combine_types(row):
     else:  # both are NaN
         return np.nan
 
-merged_SNPs['Type'] = merged_SNPs.apply(combine_types, axis=1)
+merged_SNPs['TYPE'] = merged_SNPs.apply(combine_types, axis=1)
 
 merged_SNPs = merged_SNPs.drop(columns=['TYPE_raw', 'TYPE_web'])
 merged_SNPs = merged_SNPs.drop_duplicates()
@@ -63,5 +64,6 @@ merged_SNPs = merged_SNPs.drop_duplicates()
 # Write to CSV
 merged_SNPs.to_csv('AlphaGenome/Results/dataset_combination/merged_SNP_dataset.txt',sep='_',index=None,header=None)
 
+print(f"Number without type {merged_SNPs['TYPE'].isna().sum()}")
 
 

@@ -1,6 +1,6 @@
 """
 This program reads the data from the four excel files and writes them to a txt file as a list of strings in the format
-RSID_CHR_POS_REF_ALT_DIS. 
+RSID_CHR_POS_REF_ALT_DIS. If the information is not presant in the excel file it is intended to return NaN for that column
 
 It functions through the create_snp_series function which takes the arguments:
 df - the datagrame of the excel file
@@ -9,7 +9,7 @@ CHR - Name of the column in the excel file containing the chromosome number
 POS - Name of the column in the excel file containing the position of the SNP
 REF - Name of the column containing the reference variant
 ALT - Name of th ecolumn containing the alternate variant
-disease - Name of the column containing the diseses type i.e. IBD, CD or UC
+TYPE - Name of the column containing the diseses type i.e. IBD, CD or UC
 """
 
 import pandas as pd
