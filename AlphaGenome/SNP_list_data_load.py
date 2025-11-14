@@ -24,5 +24,5 @@ SNP5['DIS'] = 'UC'
 total_SNPs = pd.concat([SNP1,SNP2,SNP3,SNP4,SNP5]).drop_duplicates(subset= ['RSID','CHR','POS','REF','ALT'],keep='last')
 
 # Write to a text file in the correct format
-total_SNPs.to_csv('AlphaGenome/Results/test_todelete/total_SNPs_test.txt',sep='_',header=None,index=None)
+total_SNPs.to_csv('AlphaGenome/Results/dataset_combination/raw_SNP_list.txt',sep='_',header=None,index=None)
 
