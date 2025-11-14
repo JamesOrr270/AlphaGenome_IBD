@@ -35,6 +35,9 @@ def create_snp_df(df, RSID=None, CHR=None, POS=None, REF=None, ALT=None, TYPE=No
     
     if TYPE is not None:
         SNP_df['TYPE'] = df[TYPE]
+
+    SNP_df['TYPE'] = SNP_df['TYPE'].str.replace(',',' ')
+    SNP_df['RSID'] = SNP_df['RSID'].str.replace('†', '').str.replace('§', '')
     
     return SNP_df
 
