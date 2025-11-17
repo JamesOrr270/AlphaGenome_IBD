@@ -14,7 +14,8 @@ with open('AlphaGenome/Data/key.txt', 'r') as file:
 dna_model = dna_client.create(API_key)
 
 # SNP_data needs to be from HG38 human genome or mouse mm10 genome, I have dropped any variants with none or -, should find a way to not do this
-SNP_data = pd.read_csv(sys.argv[1],sep="_",header=None,names=['variant_id','CHROM','POS','REF','ALT']).drop_duplicates().fillna('').replace('-','')
+SNP_data = pd.read_csv(sys.argv[1],sep="_",header=None,names=['variant_id','CHROM','POS','REF','ALT','TYPE']).drop_duplicates().fillna('').replace('-','')
+SNP_data = SNP_data[['variant_id','CHROM','POS','REF','ALT']]
 
 # Checking weather all of the required columns are presant
 required_columns = ['variant_id', 'CHROM', 'POS', 'REF', 'ALT']
@@ -23,7 +24,7 @@ for column in required_columns:
   if column not in SNP_data.columns:
     raise ValueError(f'File is missing required column: {column}.')
  
-#  Choose the sequence length. Output the effect of the SNP on all relavant genes within this area. Options are 2KB, 16KB, 100KB, 500KB, 1MB
+#  Choose the sequence length. Output the effect of the SNP on all relavant genes within this area. Options are 16KB, 100KB, 500KB, 1MB
 sequence_length = '1MB'
 
 # Makes the sequence length in the form that alphaGenome requires
@@ -124,10 +125,9 @@ significant_df_scores = df_scores[
 
 # Filter scores
 
-filtered_df_scores = significant_df_scores[
-  df_scores['biosample_name'].isin(['colonic mucosa','transverse colon','sigmoid colon','mucosa of descending colon','left colon'])&
-  (df_scores['gene_type'].isin(['protein_coding','miRNA','lncRNA']))].copy()
+IBD_specific_significant_scores = significant_df_scores[significant_df_scores['biosample_name'].isin(['colonic mucosa','transverse colon','sigmoid colon','mucosa of descending colon','left colon'])]
+gene_type_IBD_specific_significant_scores = IBD_specific_significant_scores[IBD_specific_significant_scores['gene_type'].isin(['protein_coding','miRNA','lncRNA'])]
 
 # Save Files
-significant_df_scores.to_csv(f'AlphaGenome/Results/AlphaGenome{sys.argv[2]}_all_scores.csv', index=False)
-filtered_df_scores.to_csv(f'AlphaGenome/Results/AlphaGenome{sys.argv[2]}_filtered_scores.csv', index=False)
+IBD_specific_significant_scores.to_csv(f'AlphaGenome/Results/AlphaGenome/{sys.argv[2]}_all_scores.csv', index=False)
+gene_type_IBD_specific_significant_scores.to_csv(f'AlphaGenome/Results/AlphaGenome/{sys.argv[2]}_filtered_scores.csv', index=False)

@@ -8,3 +8,5 @@ SNPs_loc/
 Results/
 .DS_Store
 Data/
+.CEL
+.zshrc
