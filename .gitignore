@@ -10,3 +10,7 @@ Results/
 Data/
 .CEL
 .zshrc
+venv.nosync
+expression_data
+genetic_data
+test/
