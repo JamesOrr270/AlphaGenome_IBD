@@ -11,11 +11,8 @@ Issues:
 
 import pandas as pd
 
-# Don't need all of these files
+
 patient_genetic_data = pd.read_csv('Gene_expression/genetic_data/SNPs_uc_gandalf_revision.txt', sep='\t')
-iSNP_results = pd.read_csv('Gene_expression/genetic_data/affected_proteins_TFs_mirs_uc_gandalf_revision.txt',sep='\t')
-AlphaGenome_results = pd.read_csv('AlphaGenome/Results/AlphaGenome/All_SNPS_1MB_16NOV25_1539_all_scores.csv')
-SNP_dataset = pd.read_csv('AlphaGenome/Results/dataset_combination/merged_SNP_dataset.txt',sep='_',names=['RSID','CHR','POS','REF','ALT','DIS'])
 patient_summary = pd.read_csv('Gene_expression/expression_data/Microarray_Leuven_UC_uninflamed.txt', sep='\t')
 
 

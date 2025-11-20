@@ -5,7 +5,12 @@ their corresponding gene expression data based on the Alphagenome predictions
 Problems:
 - Different variations of the same SNP have slighlty different regulation so hard to know which one to use (Could take an average)
 - Some genes are regulated by multiple SNPs and so need to find a way of combining these (add these together)
-- Also need to get for each size of input sequence  
+- Also need to get for each size of input sequence
+- Some of the genes have different expression in different tissues in the colon but the sample name is just colon (maybe average these)
+
+To Do:
+- Look into the most effective way to aggregate scores
+- Validate the score aggregation
 
 Interesting Observation:
 - Based on the different sensitivities seems like quite different predictions
@@ -24,7 +29,7 @@ def get_gene_predictions(filename,SNP_dataset):
     split_cols = AlphaGenome_results['variant_id'].str.split(":", expand=True)
 
     AlphaGenome_results['CHR'] = split_cols[0] 
-    AlphaGenome_results['POS'] = split_cols[1].astype(int)  
+    AlphaGenome_results['POS'] = split_cols[1].astype(int)
 
     alleles = split_cols[2].str.split(">", expand=True)
     AlphaGenome_results['REF'] = alleles[0]
@@ -59,8 +64,36 @@ def create_patients_gene_expression(filename,gene_prediction):
 
     return(patient_gene_expression)
 
+def score_aggregation(patients_gene_expression):
+    patients_gene_expression = patients_gene_expression[['RSID', 'POS', 'REF', 'ALT', 'gene_name', 'gene_id', 'gene_type', 'biosample_name', 'raw_score']]
+    
+    # Finds the average raw score of samples that match on everything onther than biosample name
+    step1 = patients_gene_expression.groupby(
+        ['RSID', 'POS', 'REF', 'ALT', 'gene_name', 'gene_id', 'gene_type']
+    ).agg({
+        'raw_score': 'mean', 
+    }).reset_index()
+
+    # Finds the average raw score of those that match everything other than the REF and ALT
+    step2 = step1.groupby(
+        ['RSID', 'POS', 'gene_name', 'gene_id', 'gene_type']
+    ).agg({
+        'raw_score': 'mean',  # Average across tissue types
+    }).reset_index()
+
+    step3 = step2.groupby(
+        ['gene_name', 'gene_id', 'gene_type']
+    ).agg({
+        'raw_score': 'sum',  # Average across tissue types
+    }).reset_index()
+
+    patient_gene_list = step3[['gene_name','raw_score']]
+    return(patient_gene_list)
+
+
 for patient in patient_list:
     for size in file_sizes:
         alphagenome_prediction = get_gene_predictions(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_SNPs_{size}_all_scores.csv',SNP_dataset)
-        create_patients_gene_expression(f'Gene_expression/test/{patient}_SNP_list.txt',alphagenome_prediction).to_csv(f'Gene_expression/test/{patient}_{size}_gene_list.csv')
+        gene_expression_df = create_patients_gene_expression(f'Gene_expression/test/{patient}_SNP_list.txt',alphagenome_prediction)
+        score_aggregation(gene_expression_df).to_csv(f'Gene_expression/test/{patient}_{size}_gene_list.csv',index=None, header=True)
 
