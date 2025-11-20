@@ -1,0 +1,66 @@
+"""
+This code takes the txt files prouced from patient SNP list and the CSV files produced from Alphagenome.py and produces output file for each patient which contains the SNPs of each patient and
+their corresponding gene expression data based on the Alphagenome predictions
+
+Problems:
+- Different variations of the same SNP have slighlty different regulation so hard to know which one to use (Could take an average)
+- Some genes are regulated by multiple SNPs and so need to find a way of combining these (add these together)
+- Also need to get for each size of input sequence  
+
+Interesting Observation:
+- Based on the different sensitivities seems like quite different predictions
+"""
+import pandas as pd
+
+
+SNP_dataset = pd.read_csv('AlphaGenome/Results/dataset_combination/merged_SNP_dataset.txt',sep='_',names=['RSID','CHR','POS','REF','ALT','DIS'])
+
+patient_list = ['366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
+file_sizes = ['16KB','500KB','1MB']
+
+# Splitting the variant ID column so that CHR, POS, REF, ALT are seperate and making sure all in the same formate and comaprable
+def get_gene_predictions(filename,SNP_dataset):
+    AlphaGenome_results = pd.read_csv(filename)
+    split_cols = AlphaGenome_results['variant_id'].str.split(":", expand=True)
+
+    AlphaGenome_results['CHR'] = split_cols[0] 
+    AlphaGenome_results['POS'] = split_cols[1].astype(int)  
+
+    alleles = split_cols[2].str.split(">", expand=True)
+    AlphaGenome_results['REF'] = alleles[0]
+    AlphaGenome_results['ALT'] = alleles[1]  
+
+    SNP_dataset = SNP_dataset.replace('','-').fillna('-')
+    AlphaGenome_results['REF'] = AlphaGenome_results['REF'].replace('','-').fillna('-')
+    AlphaGenome_results['ALT'] = AlphaGenome_results['ALT'].replace('','-').fillna('-')
+
+    # Labelling results with RSID
+
+
+    results_with_rsid = pd.merge(
+        AlphaGenome_results,
+        SNP_dataset[['RSID','CHR','POS','REF','ALT']],
+        on=['CHR', 'POS', 'REF', 'ALT'],
+        how='left'
+    )
+
+    return(results_with_rsid)
+
+def create_patients_gene_expression(filename,gene_prediction):
+    patient_SNP_list = pd.read_csv(filename,names=['RSID'])
+    patient_SNP_list['RSID'] = patient_SNP_list['RSID'].str.lower()
+
+    patient_gene_expression = pd.merge(
+        gene_prediction,
+        patient_SNP_list,
+        on = 'RSID',
+        how = 'inner'
+    )
+
+    return(patient_gene_expression)
+
+for patient in patient_list:
+    for size in file_sizes:
+        alphagenome_prediction = get_gene_predictions(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_SNPs_{size}_all_scores.csv',SNP_dataset)
+        create_patients_gene_expression(f'Gene_expression/test/{patient}_SNP_list.txt',alphagenome_prediction).to_csv(f'Gene_expression/test/{patient}_{size}_gene_list.csv')
+
