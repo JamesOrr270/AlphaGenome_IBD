@@ -1,3 +1,15 @@
+"""
+This script uses the AlphaGenome API to make gene expression predictions.
+
+Input - SNP list in the form variantID_CHROM_POS_REF_ALT and name of the output file
+
+Output - two CSV files containing predictions. The first is all predictions for IBD (i.e. in colon) and the secound is Predictions filtered by gene types for protein coding, miRNA and lncRNA
+
+Parameters - Can change the size of input sequence between 16Kb and 1MB
+"""
+
+
+
 from alphagenome.data import genome
 from alphagenome.models import dna_client
 from alphagenome.models import variant_scorers
@@ -25,7 +37,7 @@ for column in required_columns:
     raise ValueError(f'File is missing required column: {column}.')
  
 #  Choose the sequence length. Output the effect of the SNP on all relavant genes within this area. Options are 16KB, 100KB, 500KB, 1MB
-sequence_length = '1MB'
+sequence_length = '100KB'
 
 # Makes the sequence length in the form that alphaGenome requires
 sequence_length = dna_client.SUPPORTED_SEQUENCE_LENGTHS[f'SEQUENCE_LENGTH_{sequence_length}']
