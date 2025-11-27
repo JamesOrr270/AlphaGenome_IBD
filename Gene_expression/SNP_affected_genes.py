@@ -16,6 +16,8 @@ Interesting Observation:
 - Based on the different sensitivities seems like quite different predictions
 """
 import pandas as pd
+from tqdm import tqdm
+
 
 # Splitting the variant ID column so that CHR, POS, REF, ALT are seperate and making sure all in the same formate and comaprable
 def get_gene_predictions(filename,dataset):
@@ -43,6 +45,7 @@ def get_gene_predictions(filename,dataset):
         how='left'
     )
 
+    results_with_rsid.to_csv('Gene_expression/test/AlphaGenome_with_RSID.csv')
     return(results_with_rsid)
 
 def create_patients_gene_expression(filename,gene_prediction):
@@ -77,7 +80,7 @@ def score_aggregation(patients_gene_expression):
 
     # Sums all affects of SNPs onto one gene
     step3 = step2.groupby(
-        ['gene_name', 'gene_id', 'gene_type']
+        ['gene_name']
     ).agg({
         'raw_score': 'sum',  
     }).reset_index()
@@ -88,12 +91,14 @@ def score_aggregation(patients_gene_expression):
 
 SNP_dataset = pd.read_csv('AlphaGenome/Results/dataset_combination/merged_SNP_dataset.txt',sep='_',names=['RSID','CHR','POS','REF','ALT','DIS'])
 
-patient_list = ['366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
-file_sizes = ['16KB','500KB','1MB']
+patient_list = ['001','366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
+file_sizes = ['16KB','100KB','500KB','1MB']
 
-for patient in patient_list:
+for patient in tqdm(patient_list):
     for size in file_sizes:
-        alphagenome_prediction = get_gene_predictions(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_SNPs_{size}_all_scores.csv',SNP_dataset)
-        gene_expression_df = create_patients_gene_expression(f'Gene_expression/test/{patient}_SNP_list.txt',alphagenome_prediction)
-        score_aggregation(gene_expression_df).to_csv(f'Gene_expression/test/{patient}_{size}_gene_list.csv',index=None, header=True)
+        alphagenome_prediction = get_gene_predictions(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPs_{size}_all_scores.csv',SNP_dataset)
+        gene_expression_df = create_patients_gene_expression(f'Gene_expression/patient_SNP_lists/{patient}_SNP_list.txt',alphagenome_prediction)
+        score_aggregation(gene_expression_df).to_csv(f'Gene_expression/patient_gene_data_AG/{patient}_{size}_gene_list.csv',index=None, header=True)
+
+
 

@@ -25,9 +25,7 @@ for row in patient_summary.itertuples():
 
 # Getting the SNPs for each patient list and writing them to a text file
 
-count = 0
 
-patient_list_2 = []
 for patient, SNP in patient_genetic_data.items():
 
     if '_' not in patient:
@@ -36,7 +34,7 @@ for patient, SNP in patient_genetic_data.items():
     if int(patient.split('_')[1]) in patient_list:
         patient_SNPs = patient_genetic_data.loc[SNP[SNP == 1].index,'SNP'].tolist()
 
-        with open(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/test/{patient.split('_')[1]}_SNP_list.txt','w') as f:
+        with open(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_SNP_lists/{patient.split('_')[1]}_SNP_list.txt','w') as f:
             for snp in patient_SNPs:
                 f.write(f"{snp}\n")
 

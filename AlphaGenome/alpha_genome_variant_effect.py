@@ -37,7 +37,7 @@ for column in required_columns:
     raise ValueError(f'File is missing required column: {column}.')
  
 #  Choose the sequence length. Output the effect of the SNP on all relavant genes within this area. Options are 16KB, 100KB, 500KB, 1MB
-sequence_length = '100KB'
+sequence_length = '1MB'
 
 # Makes the sequence length in the form that alphaGenome requires
 sequence_length = dna_client.SUPPORTED_SEQUENCE_LENGTHS[f'SEQUENCE_LENGTH_{sequence_length}']
@@ -131,15 +131,16 @@ for i, SNP_row in tqdm(SNP_data.iterrows(), total=len(SNP_data)):
 df_scores = variant_scorers.tidy_scores(results)  
 
 # Filtering by 2SDs from the mean to find significant results
-significant_df_scores = df_scores[
-  (df_scores['raw_score'] > (df_scores['raw_score'].mean()+ (2*df_scores['raw_score'].std())))|
-  (df_scores['raw_score']< df_scores['raw_score'].mean()-(2*df_scores['raw_score'].std()))]
+# significant_df_scores = df_scores[
+#   (df_scores['raw_score'] > (df_scores['raw_score'].mean()+ (2*df_scores['raw_score'].std())))|
+#   (df_scores['raw_score']< df_scores['raw_score'].mean()-(2*df_scores['raw_score'].std()))]
 
 # Filter scores
 
-IBD_specific_significant_scores = significant_df_scores[significant_df_scores['biosample_name'].isin(['colonic mucosa','transverse colon','sigmoid colon','mucosa of descending colon','left colon'])]
-gene_type_IBD_specific_significant_scores = IBD_specific_significant_scores[IBD_specific_significant_scores['gene_type'].isin(['protein_coding','miRNA','lncRNA'])]
+IBD_specific_scores = df_scores[df_scores['biosample_name'].isin(['colonic mucosa','transverse colon','sigmoid colon','mucosa of descending colon','left colon'])]
+gene_type_IBD_specific_significant_scores = IBD_specific_scores[IBD_specific_scores['gene_type'].isin(['protein_coding','miRNA','lncRNA'])]
 
 # Save Files
-IBD_specific_significant_scores.to_csv(f'AlphaGenome/Results/AlphaGenome/{sys.argv[2]}_all_scores.csv', index=False)
+IBD_specific_scores.to_csv(f'AlphaGenome/Results/AlphaGenome/{sys.argv[2]}_all_scores.csv', index=False)
 gene_type_IBD_specific_significant_scores.to_csv(f'AlphaGenome/Results/AlphaGenome/{sys.argv[2]}_filtered_scores.csv', index=False)
+

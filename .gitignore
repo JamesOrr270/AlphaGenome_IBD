@@ -15,3 +15,6 @@ expression_data
 genetic_data
 test/
 .Rhistory
+.csv
+patient_gene_data_AG/
+patient_SNP_lists/
