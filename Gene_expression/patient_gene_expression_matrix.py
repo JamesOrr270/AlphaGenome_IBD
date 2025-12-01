@@ -29,20 +29,20 @@ normalised_expression_data = normalised_expression_data.groupby(level=0).mean()
 patient_list = ['366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
 file_sizes = ['16KB','100KB','500KB','1MB']
 
-alphagenome_total_gene_list = []
+alphagenome_total = pd.DataFrame()
 
 # This section finds the common genes between the two datasets
 for patient in patient_list:
     for size in file_sizes:
-        alphaGenome_expression = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_gene_data_AG/{patient}_{size}_gene_list.csv')
-        alphagenome_total_gene_list.extend(alphaGenome_expression['gene_name'].tolist())
+        alphaGenome_expression = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_gene_data_AG_frompatient/{patient}_{size}.csv')
+        alphagenome_total = pd.concat([alphagenome_total,alphaGenome_expression])
 
-# This line might not be needed anymore
+alphagenome_total = alphagenome_total.drop_duplicates(subset=['gene_name'])
+
+unique_alphagenome_list = alphagenome_total['gene_name'].tolist()
 unique_nomalised_expression_data = set(normalised_expression_data.index)
-unique_alphagenome_total_gene_list = list(set(alphagenome_total_gene_list))
 
-common_genes = list(set(unique_alphagenome_total_gene_list) & unique_nomalised_expression_data)
-
+common_genes = list(set(unique_alphagenome_list) & unique_nomalised_expression_data)
 # Makes the dataframe containing the expression data for the common genes between the datasets
 
 expression_matrices = {}
@@ -52,7 +52,7 @@ for size in file_sizes:
 
     for patient in patient_list:
         # Adding AlphaGenome Data
-        alphaGenome_expression = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_gene_data_AG/{patient}_{size}_gene_list.csv')
+        alphaGenome_expression = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_gene_data_AG_frompatient/{patient}_{size}.csv')
         alphaGenome_expression = alphaGenome_expression.set_index('gene_name')
         column_name_AG = f'{patient}_AG'
         expression_matrices[size][column_name_AG] = alphaGenome_expression['raw_score'].reindex(common_genes)
@@ -65,4 +65,4 @@ for size in file_sizes:
         else:
             print(f"Patient {patient} not found in expression data columns")
     
-    expression_matrices[size].to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/test/{size}_expression_matrix.csv')
+    expression_matrices[size].to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/gene_expression_matrix_frompatient/{size}_expression_matrix.csv')

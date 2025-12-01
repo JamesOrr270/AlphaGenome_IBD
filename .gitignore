@@ -18,3 +18,15 @@ test/
 .csv
 patient_gene_data_AG/
 patient_SNP_lists/
+gene_expression_matrix_non_sig/
+patient_gene_data_AG_non_sig
+gene_expression_matrix
+patient_SNP_AG_input
+patient_alphagenome_results
+patient_alphagenome_results_cage
+patient_alphagenome_results_procap
+patient_alphagenome_sig
+patient_alphaGenome_sig_RSID
+patient_gene_data_AG_frompatient
+gene_expression_matrix_frompatient
+statistical_test_results

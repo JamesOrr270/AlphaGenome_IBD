@@ -2,16 +2,6 @@
 This code takes the txt files prouced from patient SNP list and the CSV files produced from Alphagenome.py and produces output file for each patient which contains the SNPs of each patient and
 their corresponding gene expression data based on the Alphagenome predictions
 
-Problems:
-- Different variations of the same SNP have slighlty different regulation so hard to know which one to use (Could take an average)
-- Some genes are regulated by multiple SNPs and so need to find a way of combining these (add these together)
-- Some of the genes have different expression in different tissues in the colon but the sample name is just colon (maybe average these)
-- Some of the 16KB do not have any and some do not have many therefore would it be better to use 100kb instead or could be used in addition
-
-To Do:
-- Look into the most effective way to aggregate scores
-- Validate the score aggregation
-
 Interesting Observation:
 - Based on the different sensitivities seems like quite different predictions
 """
@@ -20,32 +10,30 @@ from tqdm import tqdm
 
 
 # Splitting the variant ID column so that CHR, POS, REF, ALT are seperate and making sure all in the same formate and comaprable
-def get_gene_predictions(filename,dataset):
-    AlphaGenome_results = pd.read_csv(filename)
+def get_gene_predictions(AlphaGenome_results,SNP_dataset):
     split_cols = AlphaGenome_results['variant_id'].str.split(":", expand=True)
-
     AlphaGenome_results['CHR'] = split_cols[0] 
     AlphaGenome_results['POS'] = split_cols[1].astype(int)
-
     alleles = split_cols[2].str.split(">", expand=True)
     AlphaGenome_results['REF'] = alleles[0]
     AlphaGenome_results['ALT'] = alleles[1]  
 
-    dataset = dataset.replace('','-').fillna('-')
+    SNP_dataset = SNP_dataset.replace('','-').fillna('-').drop_duplicates(subset=['CHR', 'POS', 'REF', 'ALT'], keep='first')
     AlphaGenome_results['REF'] = AlphaGenome_results['REF'].replace('','-').fillna('-')
     AlphaGenome_results['ALT'] = AlphaGenome_results['ALT'].replace('','-').fillna('-')
 
+    AlphaGenome_results['CHR'] = AlphaGenome_results['CHR'].astype(str)
+    SNP_dataset['CHR'] = SNP_dataset['CHR'].astype(str)
+    SNP_dataset['POS'] = SNP_dataset['POS'].astype(int)
     # Labelling results with RSID
-
 
     results_with_rsid = pd.merge(
         AlphaGenome_results,
-        dataset[['RSID','CHR','POS','REF','ALT','DIS']],
+        SNP_dataset[['RSID','CHR','POS','REF','ALT','DIS']],
         on=['CHR', 'POS', 'REF', 'ALT'],
         how='left'
     )
 
-    results_with_rsid.to_csv('Gene_expression/test/AlphaGenome_with_RSID.csv')
     return(results_with_rsid)
 
 def create_patients_gene_expression(filename,gene_prediction):
@@ -59,6 +47,7 @@ def create_patients_gene_expression(filename,gene_prediction):
         how = 'inner'
     )
 
+    
     return(patient_gene_expression)
 
 def score_aggregation(patients_gene_expression):
@@ -91,14 +80,12 @@ def score_aggregation(patients_gene_expression):
 
 SNP_dataset = pd.read_csv('AlphaGenome/Results/dataset_combination/merged_SNP_dataset.txt',sep='_',names=['RSID','CHR','POS','REF','ALT','DIS'])
 
-patient_list = ['001','366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
+patient_list = ['366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
 file_sizes = ['16KB','100KB','500KB','1MB']
 
 for patient in tqdm(patient_list):
     for size in file_sizes:
-        alphagenome_prediction = get_gene_predictions(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPs_{size}_all_scores.csv',SNP_dataset)
+        alphagenome_prediction = get_gene_predictions(pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_SNPs_{size}_all_scores.csv'),SNP_dataset)
         gene_expression_df = create_patients_gene_expression(f'Gene_expression/patient_SNP_lists/{patient}_SNP_list.txt',alphagenome_prediction)
         score_aggregation(gene_expression_df).to_csv(f'Gene_expression/patient_gene_data_AG/{patient}_{size}_gene_list.csv',index=None, header=True)
-
-
 

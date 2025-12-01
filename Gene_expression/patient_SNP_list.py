@@ -2,11 +2,6 @@
 This program creates lists of patient specific SNPs based on a matrix of SNPs with the functions:
 - Takes only the patients from the matrix that we have gene expression data for
 - For each patient converts their matrix of SNPs into a text file of their SNPs to be used in SNP_affected_genes.py
-
-Issues:
-- Only am getting 39 patients should be getting 48
-- Found that in the summary spreadsheet some are repeated so there are only 41 unique VICCD
-- Also found that two in the summary spread spreadsheet do not appear in the SNP dataset [9875, 7908]
 """
 
 import pandas as pd
@@ -14,7 +9,6 @@ import pandas as pd
 
 patient_genetic_data = pd.read_csv('Gene_expression/genetic_data/SNPs_uc_gandalf_revision.txt', sep='\t')
 patient_summary = pd.read_csv('Gene_expression/expression_data/Microarray_Leuven_UC_uninflamed.txt', sep='\t')
-
 
 # Getting the list of patients we have genetic data for
 
