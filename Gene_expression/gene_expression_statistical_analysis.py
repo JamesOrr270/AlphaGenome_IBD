@@ -1,3 +1,15 @@
+"""
+This script analyses the patient specific gene expression data. Due to the limitations in the data does a binary comparison in which it
+compares up and downregulation. Takes the output from patient gene_expression_matrix.py as input and outputs results 
+into the statistical_test_results folder. 
+
+Functions:
+one_tail_analysis() - Performs one tail t-test on results followed by benjamini hochberg multiple testing correction
+two_tail_analysis() - Performs two tail t-test on results followed by benjamini hochberg multiple testing correction
+
+Parameters:
+- Need to choose between one and two tail test"""
+
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -124,7 +136,6 @@ def two_tail_analysis():
                     group_1.append(total_matrix.loc[gene,f'{patient}_MA'])
                 else:
                     group_2.append(total_matrix.loc[gene,f'{patient}_MA'])
-                    direction=True
                     
 
             if len(group_1) < 3 or len(group_2) < 3:
