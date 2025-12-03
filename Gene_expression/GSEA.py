@@ -11,7 +11,7 @@ total_SNP_df = pd.DataFrame()
 def prepare_GSEA_data(expression_data_path):
     
     df = pd.read_csv(expression_data_path)
-      
+    
     # Finds the average raw score of samples that match on everything onther than biosample name
     step1 = df.groupby(
         ['RSID', 'POS', 'REF', 'ALT', 'gene_name', 'gene_id', 'gene_type']
@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
     # print(gp.get_library_name())   # shows all 300+ available gene-set names
 
-    ################################## Getting a list of all SNPs presant in the patients for input into AlphaGenome
+    ################################# Getting a list of all SNPs presant in the patients for input into AlphaGenome
     
     for patient in patient_list:
         df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_SNP_AG_input/{patient}_AG_SNPs.txt',
@@ -93,6 +93,8 @@ if __name__ == '__main__':
 
     for size in file_sizes:
          GSEA_data = prepare_GSEA_data(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphagenome_results/All_patient_{size}_non_significant.csv')
+        #  print(GSEA_data)
+        #  GSEA_data = prepare_GSEA_data(f'//Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_SNPS_{size}_all_scores.csv')
          GSEA_results = perform_GSEA('GO_Biological_Process_2025',GSEA_data)
          GSEA_results = GSEA_results.sort_values('fdr', ascending=True)
          significant_results = GSEA_results[GSEA_results['fdr'] < 0.25]
