@@ -1,3 +1,16 @@
+"""
+Pipeline for GSEA for total patient SNPS (copy into main)
+    get_total_patient_snps()
+    run_alphaGenome_for_total_patient_snps()
+    run_GSEA_for_total_patient_SNPs
+
+Pipeline for ORA for total patient SNPs
+    get_total_patient_snps()
+    run_alphaGenome_for_total_patient_snps()
+    overrepresentation_anaysis_for_total_patient_SNP()
+"""
+
+
 import gseapy as gp
 import pandas as pd
 from pybiomart import Dataset
@@ -6,7 +19,6 @@ from patient_variant_effect_Alphagenome import get_alphaGenome_prediction
 
 patient_list = ['366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
 file_sizes = ['16KB','100KB','500KB','1MB']
-total_SNP_df = pd.DataFrame()
 
 def prepare_GSEA_data(expression_data_path):
     
@@ -61,14 +73,11 @@ def perform_GSEA(gene_set,df):
 
     return(df_out)
 
+def get_total_patient_snps():
+       ################################# Getting a list of all SNPs presant in the patients for input into AlphaGenome
+    total_SNP_df = pd.DataFrame()
+    patient_list = ['366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
 
-
-if __name__ == '__main__':
-
-    # print(gp.get_library_name())   # shows all 300+ available gene-set names
-
-    ################################# Getting a list of all SNPs presant in the patients for input into AlphaGenome
-    
     for patient in patient_list:
         df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_SNP_AG_input/{patient}_AG_SNPs.txt',
                          sep='_', names= ['RSID','CHROM','POS','REF','ALT'],
@@ -81,15 +90,17 @@ if __name__ == '__main__':
         for _, row in total_SNP_df.iterrows():
             f.write(f"{row['RSID']}_{row['CHROM']}_{row['POS']}_{row['REF']}_{row['ALT']}\n")
 
+def run_alphaGenome_for_total_patient_snps():
     ################################### Getting AlphaGenome Predictions
-    
-    for size in file_sizes:
+     file_sizes = ['16KB','100KB','500KB','1MB']
+
+     for size in file_sizes:
             get_alphaGenome_prediction('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_SNP_AG_input/All_patient_SNPs.txt',
                                         f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphagenome_results/All_patient_{size}',
                                         size)
             
-
-    ################################## Run GSEA on these different groups
+def run_GSEA_for_total_patient_SNPs():
+    file_sizes = ['16KB','100KB','500KB','1MB']
 
     for size in file_sizes:
          GSEA_data = prepare_GSEA_data(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphagenome_results/All_patient_{size}_non_significant.csv')
@@ -101,6 +112,34 @@ if __name__ == '__main__':
 
          GSEA_results.to_csv((f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/GSEA_results/GSEA_results_{size}.csv'))
          significant_results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/GSEA_results/GSEA_results_{size}_significant.csv')
+
+def overrepresentation_anaysis_for_total_patient_SNP():
+    for size in file_sizes:
+        df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphagenome_results/All_patient_{size}_non_significant.csv')
+        df = df[df['quantile_score']>0.99]
+        df = df['gene_name']
+        df = df.drop_duplicates()
+        glist = df.squeeze().str.strip().to_list()
+
+        enr = gp.enrichr(gene_list=glist, # or "./tests/data/gene_list.txt",
+                 gene_sets='GO_Biological_Process_2025',
+                 organism='human', 
+                 outdir=None, 
+                )
+        
+        enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/{size}_patients')
+
+        enr.results = enr.results[enr.results['Adjusted P-value']< 0.05]
+        enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/{size}_patients_significant')
+
+
+if __name__ == '__main__':
+
+    # get_total_patient_snps()
+    # run_alphaGenome_for_total_patient_snps()
+    # run_GSEA_for_total_patient_SNPs()
+
+    overrepresentation_anaysis_for_total_patient_SNP()
 
 
  
