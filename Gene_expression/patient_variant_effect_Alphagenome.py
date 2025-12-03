@@ -41,9 +41,9 @@ def get_alphaGenome_prediction(input_file,output_file,sequence_length):
     sequence_length = dna_client.SUPPORTED_SEQUENCE_LENGTHS[f'SEQUENCE_LENGTH_{sequence_length}']
 
     # Choosing which tests to predict
-    score_rna_seq = False
+    score_rna_seq = True
     score_cage = False
-    score_procap = True
+    score_procap = False
     score_dnase = False
     score_chip_tf = False
     score_atac = False
@@ -138,8 +138,29 @@ def get_alphaGenome_prediction(input_file,output_file,sequence_length):
             continue
 
     
-    # Tidy scores
+    # Tidy scores and re-add RSID
     df_scores = variant_scorers.tidy_scores(results)
+    df_scores['variant_id'] = df_scores['variant_id'].astype(str)
+    split_cols = df_scores['variant_id'].str.split(":", expand=True)
+    df_scores['CHROM'] = split_cols[0] 
+    df_scores['POS'] = split_cols[1].astype(int)
+    alleles = split_cols[2].str.split(">", expand=True)
+    df_scores['REF'] = alleles[0]
+    df_scores['ALT'] = alleles[1]  
+
+    df_scores['CHROM'] = df_scores['CHROM'].astype(str)
+    SNP_data['CHROM'] = SNP_data['CHROM'].astype(str)
+    SNP_data['POS'] = SNP_data['POS'].astype(int)
+
+    df_scores = pd.merge(
+        df_scores,
+        SNP_data[['variant_id','CHROM','POS','REF','ALT']],
+        on=['CHROM', 'POS', 'REF', 'ALT'],
+        how='left'
+    )
+
+    df_scores = df_scores.rename(columns={'variant_id_y': 'RSID','variant_id_x':'variant_id'})
+
 
         # Filtering by 2SDs from the mean to find significant results
     IBD_specific_scores = df_scores[df_scores['biosample_name'].isin(['colonic mucosa','transverse colon','sigmoid colon','mucosa of descending colon','left colon'])]
@@ -159,10 +180,9 @@ if __name__ =='__main__':
 
     patient_list = ['366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
     file_sizes = ['16KB','100KB','500KB','1MB']
-
     for size in file_sizes:
         for patient in patient_list:
             print(f'------------------------{size},{patient}------------------------')
             get_alphaGenome_prediction(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_SNP_AG_input/{patient}_AG_SNPs.txt',
-                                       f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphagenome_results_PROCAP/{patient}_AG_results_PROCAP_{size}',
+                                       f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphagenome_results_RSIDtest/{patient}_AG_results_{size}',
                                        size)

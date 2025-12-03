@@ -5,9 +5,6 @@ This program merges the two files together so that the new file contains saved a
  on the RSID and not neccessarily the nucleotide change
 - SNPs with no disease type from both files are left blank
 - SNPs with multiple different phenotypes associated have all these phenotypes in the last column
-
-To do:
-- Validate
 """
 import pandas as pd
 import numpy as np

@@ -30,3 +30,5 @@ patient_alphaGenome_sig_RSID
 patient_gene_data_AG_frompatient
 gene_expression_matrix_frompatient
 statistical_test_results
+patient_alphagenome_results_RSIDtest
+GSEA_results
