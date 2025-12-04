@@ -15,6 +15,9 @@ import gseapy as gp
 import pandas as pd
 from pybiomart import Dataset
 from patient_variant_effect_Alphagenome import get_alphaGenome_prediction
+from gseapy import barplot, dotplot
+import matplotlib.pyplot as plt
+
 
 
 patient_list = ['366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
@@ -169,6 +172,10 @@ def two_tail_overrepresentation_analysis_for_total_patient_SNP():
         enr.results = enr.results[enr.results['Adjusted P-value']< 0.05]
         enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/two_tail/{size}_patients_significant.csv')
 
+        ax = barplot(enr.res2d,title='KEGG_2021_Human', figsize=(4, 5), color='darkred',ofname='/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/one_tail/16KB_barplot2.png')
+            
+        
+
 def two_tail_overrepresentation_analysis_for_total_SNP():
     
     for size in file_sizes:
@@ -226,12 +233,40 @@ def one_tail_overrepresentation_analysis_for_total_SNP():
 
         enr.results = enr.results[enr.results['Adjusted P-value']< 0.05]
         enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/one_tail/{size}_patients_significant_downregulated.csv')
+        
+def plot_enrichment_results(results_path, output_path):
+    """
+    Plot enrichment analysis results using gseapy barplot
+    
+    Parameters:
+    -----------
+    results_path : str
+        Path to CSV file containing enrichment results
+    output_path : str, optional
+        Path to save the figure
+    """
+    # Read the results
+    df = pd.read_csv(results_path)
+    
+    # Filter for significant results if needed
+    df_sig = df[df['Adjusted P-value'] < 0.05]
+
+    # Create the barplot
+    ax = barplot(df_sig,
+                 column="Adjusted P-value",
+                 title="GO Over-Representation Analysis",
+                 group='Gene_set',
+                 figsize=(8, 8),
+                 top_term=15,
+                 color={'GO_Biological_Process_2025':'darkblue'},
+                 ofname=output_path)  # Will save if path provided
+
+    
 
 if __name__ == '__main__':
+    plot_enrichment_results('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/two_tail/16KB_patients.csv',
+                            '/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/two_tail/16KB_barplot.png')     
 
-    one_tail_overrepresentation_analysis_for_total_SNP()
     
-    
-
 
  
