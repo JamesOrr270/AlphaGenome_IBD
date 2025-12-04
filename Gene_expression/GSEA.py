@@ -252,7 +252,6 @@ def plot_enrichment_results(results_path, output_path):
     # Create the barplot
     ax = barplot(df_sig,
                  column="Adjusted P-value",
-                 title="GO Over-Representation Analysis",
                  group='Gene_set',
                  figsize=(8, 8),
                  top_term=15,
