@@ -113,7 +113,7 @@ def run_GSEA_for_total_patient_SNPs():
          GSEA_results.to_csv((f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/GSEA_results/GSEA_results_{size}.csv'))
          significant_results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/GSEA_results/GSEA_results_{size}_significant.csv')
 
-def overrepresentation_anaysis_for_total_patient_SNP():
+def one_tail_overrepresentation_anaysis_for_total_patient_SNP():
     for size in file_sizes:
         df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphagenome_results/All_patient_{size}_non_significant.csv')
         df = df[df['quantile_score']>0.99]
@@ -127,19 +127,111 @@ def overrepresentation_anaysis_for_total_patient_SNP():
                  outdir=None, 
                 )
         
-        enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/{size}_patients')
+        enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/one_tail/{size}_patients_upregulated.csv')
 
         enr.results = enr.results[enr.results['Adjusted P-value']< 0.05]
-        enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/{size}_patients_significant')
+        enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/one_tail/{size}_patients_significant_upregulated.csv')
 
+        for size in file_sizes:
+            df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphagenome_results/All_patient_{size}_non_significant.csv')
+            df = df[df['quantile_score']< -0.99]
+            df = df['gene_name']
+            df = df.drop_duplicates()
+            glist = df.squeeze().str.strip().to_list()
+
+            enr = gp.enrichr(gene_list=glist, # or "./tests/data/gene_list.txt",
+                    gene_sets='GO_Biological_Process_2025',
+                    organism='human', 
+                    outdir=None, 
+                    )
+            
+            enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/one_tail/{size}_patients_downregulated.csv')
+
+            enr.results = enr.results[enr.results['Adjusted P-value']< 0.05]
+            enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/one_tail/{size}_patients_significant_downregulated.csv')
+
+def two_tail_overrepresentation_analysis_for_total_patient_SNP():
+    for size in file_sizes:
+        df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphagenome_results/All_patient_{size}_non_significant.csv')
+        df = df[(df['quantile_score'] > 0.99) | (df['quantile_score'] < -0.99)]
+        df = df['gene_name']
+        df = df.drop_duplicates()
+        glist = df.squeeze().str.strip().to_list()
+
+        enr = gp.enrichr(gene_list=glist, # or "./tests/data/gene_list.txt",
+                 gene_sets='GO_Biological_Process_2025',
+                 organism='human', 
+                 outdir=None, 
+                )
+        
+        enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/two_tail/{size}_patients.csv')
+
+        enr.results = enr.results[enr.results['Adjusted P-value']< 0.05]
+        enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/two_tail/{size}_patients_significant.csv')
+
+def two_tail_overrepresentation_analysis_for_total_SNP():
+    
+    for size in file_sizes:
+        df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_{size}_all_scores.csv')
+        df = df[(df['quantile_score'] > 0.99) | (df['quantile_score'] < -0.99)]
+        df = df['gene_name']
+        df = df.drop_duplicates()
+        glist = df.squeeze().str.strip().to_list()
+
+        enr = gp.enrichr(gene_list=glist, # or "./tests/data/gene_list.txt",
+                 gene_sets='GO_Biological_Process_2025',
+                 organism='human', 
+                 outdir=None, 
+                )
+        
+        enr.results.to_csv(f'//Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/two_tail/{size}_patients.csv')
+
+        enr.results = enr.results[enr.results['Adjusted P-value']< 0.05]
+        enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/two_tail/{size}_patients_significant.csv')
+
+def one_tail_overrepresentation_analysis_for_total_SNP():
+    
+    for size in file_sizes:
+        df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_{size}_all_scores.csv')
+        df = df[(df['quantile_score'] > 0.99)]
+        df = df['gene_name']
+        df = df.drop_duplicates()
+        glist = df.squeeze().str.strip().to_list()
+
+        enr = gp.enrichr(gene_list=glist, # or "./tests/data/gene_list.txt",
+                 gene_sets='GO_Biological_Process_2025',
+                 organism='human', 
+                 outdir=None, 
+                )
+        
+        enr.results.to_csv(f'//Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/one_tail/{size}_patients_upregulated.csv')
+
+        enr.results = enr.results[enr.results['Adjusted P-value']< 0.05]
+        enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/one_tail/{size}_patients_significant_upregulated.csv')
+
+    for size in file_sizes:
+        df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_{size}_all_scores.csv')
+        df = df[(df['quantile_score'] < -0.99)]
+        df = df['gene_name']
+        df = df.drop_duplicates()
+        glist = df.squeeze().str.strip().to_list()
+
+        enr = gp.enrichr(gene_list=glist, # or "./tests/data/gene_list.txt",
+                 gene_sets='GO_Biological_Process_2025',
+                 organism='human', 
+                 outdir=None, 
+                )
+        
+        enr.results.to_csv(f'//Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/one_tail/{size}_patients_downregulated.csv')
+
+        enr.results = enr.results[enr.results['Adjusted P-value']< 0.05]
+        enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/one_tail/{size}_patients_significant_downregulated.csv')
 
 if __name__ == '__main__':
 
-    # get_total_patient_snps()
-    # run_alphaGenome_for_total_patient_snps()
-    # run_GSEA_for_total_patient_SNPs()
-
-    overrepresentation_anaysis_for_total_patient_SNP()
+    one_tail_overrepresentation_analysis_for_total_SNP()
+    
+    
 
 
  
