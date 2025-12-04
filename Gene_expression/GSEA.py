@@ -172,9 +172,7 @@ def two_tail_overrepresentation_analysis_for_total_patient_SNP():
         enr.results = enr.results[enr.results['Adjusted P-value']< 0.05]
         enr.results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/two_tail/{size}_patients_significant.csv')
 
-        ax = barplot(enr.res2d,title='KEGG_2021_Human', figsize=(4, 5), color='darkred',ofname='/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/one_tail/16KB_barplot2.png')
-            
-        
+        ax = barplot(enr.res2d,title='KEGG_2021_Human', figsize=(4, 5), color='darkred',ofname='/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/one_tail/16KB_barplot2.png')     
 
 def two_tail_overrepresentation_analysis_for_total_SNP():
     
@@ -260,8 +258,6 @@ def plot_enrichment_results(results_path, output_path):
                  top_term=15,
                  color={'GO_Biological_Process_2025':'darkblue'},
                  ofname=output_path)  # Will save if path provided
-
-    
 
 if __name__ == '__main__':
     plot_enrichment_results('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/two_tail/16KB_patients.csv',
