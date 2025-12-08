@@ -134,8 +134,8 @@ def compare_overlapping_genes():
                 ha='center', va='bottom', fontsize=11, fontweight='bold')
 
     # Styling
-    plt.xlabel('Input Window Size', fontsize=12, fontweight='bold')
-    plt.ylabel('Number of Significant Genes', fontsize=12, fontweight='bold')
+    plt.xlabel('Input Sequence Size', fontsize=12, fontweight='bold')
+    plt.ylabel('Number of Significantly Differentially Expressed Genes', fontsize=12, fontweight='bold')
 
     # Add grid for better readability
     plt.grid(axis='y', alpha=0.3, linestyle='--', linewidth=0.7)
