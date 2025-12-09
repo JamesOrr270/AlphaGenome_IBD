@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 
 patient_list = ['366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
@@ -81,7 +82,6 @@ def compare_overlapping_genes():
     total_500KB = total_500KB[(total_500KB['quantile_score']>0.99) | (total_500KB['quantile_score']<-0.99)]
     total_1MB = total_1MB[(total_1MB['quantile_score']>0.99) | (total_1MB['quantile_score']<-0.99)]
     
-    # These are now Series, not DataFrames
     total_16KB = total_16KB['gene_name'].drop_duplicates()
     total_100KB = total_100KB['gene_name'].drop_duplicates()
     total_500KB = total_500KB['gene_name'].drop_duplicates()
@@ -94,7 +94,6 @@ def compare_overlapping_genes():
 
     overlap_matrix = pd.DataFrame(columns=file_sizes, index=file_sizes)
 
-    # Use the Series directly, not total_16KB['gene_name']
     overlap_matrix.loc['16KB', '100KB'] = (total_16KB.isin(total_100KB).sum()) / (len(total_16KB)) * 100
     overlap_matrix.loc['16KB', '500KB'] = (total_16KB.isin(total_500KB).sum()) / (len(total_16KB)) * 100
     overlap_matrix.loc['16KB', '1MB'] = (total_16KB.isin(total_1MB).sum()) / (len(total_16KB)) * 100
@@ -114,55 +113,64 @@ def compare_overlapping_genes():
     print('\n')
     print(overlap_matrix)
 
-    import matplotlib.pyplot as plt
-
     x = file_sizes
     y = [len(total_16KB), len(total_100KB), len(total_500KB), len(total_1MB)]
 
-    # Create figure with specific size
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(12, 8))
 
-    # Create bars with gradient colors
     colors = ['#003E74']
     bars = plt.bar(x, y, color=colors, edgecolor='black', linewidth=1.5, alpha=0.8)
 
-    # Add value labels on top of bars
     for i, (bar, value) in enumerate(zip(bars, y)):
         height = bar.get_height()
         plt.text(bar.get_x() + bar.get_width()/2., height,
-                f'{value:,}',  # Format with comma separator
-                ha='center', va='bottom', fontsize=11, fontweight='bold')
+                f'{value:,}',  
+                ha='center', va='bottom', fontsize=25, fontweight='bold')
 
-    # Styling
-    plt.xlabel('Input Sequence Size', fontsize=12, fontweight='bold')
-    plt.ylabel('Number of Significantly Differentially Expressed Genes', fontsize=12, fontweight='bold')
+    plt.xlabel('Input Sequence Size', fontsize=20, fontweight='bold')
+    plt.ylabel('Significantly Differentially Expressed Genes', fontsize=20, fontweight='bold')
 
-    # Add grid for better readability
+    plt.xticks(fontsize=25)
+    plt.yticks(fontsize=25)
+
+   
     plt.grid(axis='y', alpha=0.3, linestyle='--', linewidth=0.7)
 
-    # Adjust y-axis to start from 0 and add some padding at top
+    
     plt.ylim(0, max(y) * 1.1)
 
     plt.tight_layout()
     plt.show()
 
-    # After creating overlap_matrix:
-    plt.figure(figsize=(8, 6))
+    
+    annot_array = overlap_matrix.astype(float).values.copy()
+    annot_labels = np.empty_like(annot_array, dtype=object)
+
+    for i in range(annot_array.shape[0]):
+        for j in range(annot_array.shape[1]):
+            if i == j:  # Diagonal
+                annot_labels[i, j] = '-'
+            else:
+                annot_labels[i, j] = f'{annot_array[i, j]:.1f}%'
+
+    plt.figure(figsize=(14, 6))
     sns.heatmap(overlap_matrix.astype(float), 
-                annot=True,  # Show percentages in cells
-                fmt='.1f',   # One decimal place
-                cmap='YlOrRd',  # Color scheme
-                cbar_kws={'label': 'Overlap (%)'},
+                annot=annot_labels,  # Changed from True to annot_labels
+                fmt='',   # Changed from '.1f' to empty string
+                cmap='YlOrRd',  
+                cbar_kws={'label': 'Gene Overlap (%)'},
                 linewidths=0.5,
                 linecolor='gray',
-                vmin=0, vmax=100)
+                vmin=0, vmax=100,
+                annot_kws={'fontsize': 20})  # Added this line
 
     plt.xlabel('', fontsize=12, fontweight='bold')
-    plt.ylabel('Source Window Size', fontsize=12, fontweight='bold')
 
-    # Move x-axis to top
     plt.gca().xaxis.tick_top()
     plt.gca().xaxis.set_label_position('top')
+
+    plt.xticks(fontsize=20, fontweight='bold')
+    plt.yticks(fontsize=20, fontweight='bold', rotation=0)  
 
     plt.tight_layout()
     plt.show()
