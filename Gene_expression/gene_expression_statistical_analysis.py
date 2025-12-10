@@ -15,7 +15,7 @@ import numpy as np
 from scipy import stats
 from scipy.stats import spearmanr, pearsonr, norm
 import matplotlib.pyplot as plt
-import seaborn as sn
+import seaborn as sns
 from statsmodels.stats.multitest import multipletests
 
 patient_list = ['366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
@@ -36,6 +36,7 @@ def one_tail_analysis():
         p_values = []
         gene_names = []
         directions = []
+        all_gene_data = {}
         
         for gene in total_matrix.index:
             group_1 = [] #Group 1 is the group with all the non-differentially expressed
@@ -73,6 +74,13 @@ def one_tail_analysis():
                 print(f'{gene} are all 0 values')
                 continue
             
+            all_gene_data[gene] = {
+                'group_1': group_1,
+                'group_2': group_2,
+                'direction': direction,
+                'p_value': p_value
+            }
+
             p_values.append(p_value)
             gene_names.append(gene)
             directions.append(direction)
@@ -113,6 +121,50 @@ def one_tail_analysis():
         print(f"Significant genes (uncorrected p < 0.05): {(results_df['p_value'] < 0.05).sum()}")
         print(f"Significant genes (FDR < 0.05): {results_df['significant'].sum()}")
 
+        significant_fdr_genes = results_df[results_df['significant'] == True]['gene'].tolist()
+        gene_data = {gene: all_gene_data[gene] for gene in significant_fdr_genes if gene in all_gene_data}
+        
+        # Add corrected p-values to gene_data
+        for gene in gene_data:
+            gene_data[gene]['p_value_corrected'] = results_df[results_df['gene'] == gene]['p_value_corrected'].values[0]
+        
+        # Create box plots for FDR-significant genes
+        print(f"\nNumber of FDR-significant genes: {len(gene_data)}")
+        
+        if len(gene_data) > 0:
+            # Create output directory for plots
+            import os
+            plot_dir = f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/statistical_test_results/onetail_boxplot_{size}'
+            os.makedirs(plot_dir, exist_ok=True)
+            
+            for gene, data in gene_data.items():
+                # Prepare data for plotting
+                plot_data = pd.DataFrame({
+                    'Expression': data['group_1'] + data['group_2'],
+                    'Group': ['No Predicted Differential Expression'] * len(data['group_1']) + ['Predicted Differential Expression'] * len(data['group_2'])
+                })
+         # Create figure
+                plt.figure(figsize=(8, 6))
+                sns.boxplot(data=plot_data, x='Group', y='Expression', palette=['lightblue', 'lightcoral'], showfliers=False)                
+                # Add individual points
+                sns.stripplot(data=plot_data, x='Group', y='Expression', color='black', alpha=0.5, size=4)
+                
+                # Add title and labels with corrected p-value
+                plt.title(f'{gene} - {data["direction"].capitalize()}\n FDR-adjusted p: {data["p_value_corrected"]:.4f}',fontsize = 16, fontweight = 'bold')
+                plt.ylabel('Gene Expression (log$_2$ intensity)',fontsize = 14,fontweight = 'bold')
+                plt.xlabel('Patient Group', fontsize = 14,fontweight = 'bold')
+                
+                plt.xticks(fontsize=10)
+                plt.yticks(fontsize=12)
+
+                plt.tight_layout()
+                plt.savefig(f'{plot_dir}/{gene}_boxplot.png', dpi=300, bbox_inches='tight')
+                plt.close()
+            
+            print(f"\nBox plots saved to: {plot_dir}")
+        else:
+            print(f"\nNo FDR-significant genes (adjusted p < 0.05) found for {size}, no plots created.")
+            
 def two_tail_analysis():
       for size in file_sizes:
         df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/gene_expression_matrix_frompatient/{size}_expression_matrix.csv',index_col=0)
@@ -190,5 +242,5 @@ def two_tail_analysis():
         print(f"Significant genes (FDR < 0.05): {results_df['significant'].sum()}")
 
 if __name__ == '__main__':
-    two_tail_analysis()
+    one_tail_analysis()
 
