@@ -15,7 +15,7 @@ import gseapy as gp
 import pandas as pd
 from pybiomart import Dataset
 from patient_variant_effect_Alphagenome import get_alphaGenome_prediction
-from gseapy import barplot
+from gseapy import barplot, dotplot
 import matplotlib.pyplot as plt
 
 
@@ -270,28 +270,59 @@ def plot_enrichment_results(results_path, output_path):
                  top_term=10,
                  color={'GO_Biological_Process_2025':'darkblue'},
                  ofname=output_path)  # Will save if path provided
-    
+
+
 def plot_GSEA_results(results_path, output_path):
+# Needs work
+    # df = pd.read_csv(results_path)
+    
+    # df_sig = df[df['fdr'] < 0.05]
+
+    # df_sig = df_sig.rename(columns={'nes':'Normalised Enrichment Score'})
+
+    # ax = barplot(df_sig,
+    #              column="Normalised Enrichment Score",
+    #              group='Gene_set',
+    #              figsize=(8, 8),
+    #              top_term=10,
+    #              color={'GO_Biological_Process_2025':'darkblue'},
+    #              ofname=None)  # Will save if path provided
 
     df = pd.read_csv(results_path)
-    
+
     df_sig = df[df['fdr'] < 0.05]
+    df_sig = df_sig.rename(columns={'nes':'Normalised Enrichment Score'})
 
-    df_sig = df_sig.rename(columns={'fdr':'FDR'})
-
+    # Create the plot but don't save yet
     ax = barplot(df_sig,
-                 column="FDR",
-                 group='Gene_set',
-                 figsize=(8, 8),
-                 top_term=10,
-                 color={'GO_Biological_Process_2025':'darkblue'},
-                 ofname=output_path)  
+                column="Normalised Enrichment Score",
+                group='Gene_set',
+                figsize=(15, 8),
+                top_term=10,
+                color={'GO_Biological_Process_2025':'darkblue'},
+                ofname=None)
+
+    # Move the y-axis labels and spine to the right
+    ax.yaxis.tick_right()
+    ax.yaxis.set_label_position("right")
+    ax.spines['right'].set_visible(True)
+    ax.spines['left'].set_visible(False)
+
+    ax.tick_params(axis='y', labelsize=16)  # Adjust the number as needed
+
+
+    # Add value labels to the bars
+    for container in ax.containers:
+        ax.bar_label(container, fmt='%.2f', padding=3)
+
+    # Get the current figure and save it
+    fig = ax.get_figure()
+    fig.tight_layout()
+    fig.savefig(output_path, bbox_inches='tight', dpi=300)
+    plt.close(fig)
+
 
 if __name__ == '__main__':
 
-    for size in file_sizes:
-        plot_enrichment_results(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/two_tail/{size}_patients_significant.csv',
-                                f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/two_tail/{size}_patients_significant_plot.png')
-
-    
- 
+    plot_GSEA_results('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/GSEA_results/1MB_significant_results',
+                      '/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/GSEA_results/1MB_significant_plot.png') 
