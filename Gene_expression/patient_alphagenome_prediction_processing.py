@@ -98,21 +98,22 @@ def get_RSID_without_API(df):
 
     SNPs = pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/dataset_combination/merged_SNP_dataset.txt',
                         sep='_',
-                        names=['variant_id','CHROM','POS','REF','ALT','DIS'])
+                        names=['RSID','CHROM','POS','REF','ALT','DIS'])
     SNPs = SNPs.replace('','-').fillna('-')
     
     df_scores = pd.merge(
         df,
-        SNPs[['variant_id','CHROM','POS','REF','ALT']],
+        SNPs[['RSID','CHROM','POS','REF','ALT']],
         on=['CHROM', 'POS', 'REF', 'ALT'],
         how='left'
     )
 
+    
     return(df_scores)
 if __name__ == '__main__':
      for size in file_sizes:
-          for patient in patients:
-            df = get_RSID_without_API(pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_{size}_all_scores.csv'))
-            df.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_{size}_all_scores_RSID.csv')
-            
+        print(f'Labelling {size}')
+        df = get_RSID_without_API(pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_{size}_all_scores.csv'))
+        df.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_{size}_all_scores_RSID.csv')
+        print(f'Completed {size}')
        
