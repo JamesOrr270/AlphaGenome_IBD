@@ -15,18 +15,17 @@ import gseapy as gp
 import pandas as pd
 from pybiomart import Dataset
 from patient_variant_effect_Alphagenome import get_alphaGenome_prediction
-from gseapy import barplot, dotplot
+from gseapy import barplot
 import matplotlib.pyplot as plt
+
 
 
 
 patient_list = ['366','481','880','937','955','1782','1914','2376','2634','3146','3365','3670','3771','3792','4133','4572','5513','5517','6030','6684','7051','7148','7194','7645','7689','7748','7951','8193','8573','8660','8691','8842','8864','9165','9442','9608','9971','10097','10485']
 file_sizes = ['16KB','100KB','500KB','1MB']
 
-def prepare_GSEA_data(expression_data_path):
-    
-    df = pd.read_csv(expression_data_path)
-    
+def prepare_GSEA_data(df):
+        
     # Finds the average raw score of samples that match on everything onther than biosample name
     step1 = df.groupby(
         ['RSID', 'POS', 'REF', 'ALT', 'gene_name', 'gene_id', 'gene_type']
@@ -115,6 +114,20 @@ def run_GSEA_for_total_patient_SNPs():
 
          GSEA_results.to_csv((f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/GSEA_results/GSEA_results_{size}.csv'))
          significant_results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/GSEA_results/GSEA_results_{size}_significant.csv')
+def run_GSEA_for_total_SNPs():
+    file_sizes = ['16KB','100KB','500KB','1MB']
+
+    for size in file_sizes:
+        df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_{size}_all_scores_RSID.csv')
+        GSEA_data = prepare_GSEA_data(df)
+        GSEA_results = perform_GSEA('GO_Biological_Process_2025',GSEA_data)
+
+        GSEA_results = GSEA_results.sort_values('fdr', ascending=True)
+        significant_results = GSEA_results[GSEA_results['fdr'] < 0.05]
+
+        GSEA_results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/GSEA_results/{size}_significant_results')
+        significant_results.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/GSEA_results/{size}_significant_results')
+
 
 def one_tail_overrepresentation_anaysis_for_total_patient_SNP():
     for size in file_sizes:
@@ -254,14 +267,31 @@ def plot_enrichment_results(results_path, output_path):
                  column="Adjusted P-value",
                  group='Gene_set',
                  figsize=(8, 8),
-                 top_term=15,
+                 top_term=10,
                  color={'GO_Biological_Process_2025':'darkblue'},
                  ofname=output_path)  # Will save if path provided
+    
+def plot_GSEA_results(results_path, output_path):
+
+    df = pd.read_csv(results_path)
+    
+    df_sig = df[df['fdr'] < 0.05]
+
+    df_sig = df_sig.rename(columns={'fdr':'FDR'})
+
+    ax = barplot(df_sig,
+                 column="FDR",
+                 group='Gene_set',
+                 figsize=(8, 8),
+                 top_term=10,
+                 color={'GO_Biological_Process_2025':'darkblue'},
+                 ofname=output_path)  
 
 if __name__ == '__main__':
-    plot_enrichment_results('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/two_tail/16KB_patients.csv',
-                            '/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/ORA_results/two_tail/16KB_barplot.png')     
+
+    for size in file_sizes:
+        plot_enrichment_results(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/two_tail/{size}_patients_significant.csv',
+                                f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/two_tail/{size}_patients_significant_plot.png')
 
     
-
  

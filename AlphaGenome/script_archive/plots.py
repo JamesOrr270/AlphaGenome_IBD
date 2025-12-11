@@ -50,7 +50,22 @@ def raw_score_histogram():
     plt.tight_layout()
     plt.show()
 
+def significant_genes_bar_chart():
+
+    data_16KB = pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_16KB_all_scores.csv')
+    data_100KB = pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_100KB_all_scores.csv')
+    data_500KB = pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_500KB_all_scores.csv')
+    data_1MB = pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_1MB_all_scores.csv')
+
+    sig_data_16KB = data_16KB[(data_16KB['quantile_score'] > 0.99) | (data_16KB['quantile_score'] < -0.99)]
+    sig_data_100KB = data_100KB[(data_100KB['quantile_score'] > 0.99) | (data_100KB['quantile_score'] < -0.99)]
+    sig_data_500KB = data_500KB[(data_500KB['quantile_score'] > 0.99) | (data_500KB['quantile_score'] < -0.99)]
+    sig_data_1MB = data_1MB[(data_1MB['quantile_score'] > 0.99) | (data_1MB['quantile_score'] < -0.99)]
+    
+    print(sig_data_16KB)
+
+    datasets = [data_16KB, data_100KB, data_500KB, data_1MB]
+    titles = ['16KB Window', '100KB Window', '500KB Window', '1MB Window']
 
 if __name__ == '__main__':
-    raw_score_histogram()
-
+    significant_genes_bar_chart()
