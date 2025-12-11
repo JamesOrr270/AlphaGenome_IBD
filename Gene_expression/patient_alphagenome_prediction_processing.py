@@ -83,11 +83,36 @@ def get_RSID(df):
     
     return df
 
+def get_RSID_without_API(df):
+    split_cols = df['variant_id'].str.split(":", expand=True)
+    df['CHROM'] = split_cols[0] 
+    df['POS'] = split_cols[1].astype(int)
+    alleles = split_cols[2].str.split(">", expand=True)
+    df['REF'] = alleles[0]
+    df['ALT'] = alleles[1]  
+
+    df['REF'] = df['REF'].replace('','-').fillna('-')
+    df['ALT'] = df['ALT'].replace('','-').fillna('-')
+
+    df['CHROM'] = df['CHROM'].astype(str)
+
+    SNPs = pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/dataset_combination/merged_SNP_dataset.txt',
+                        sep='_',
+                        names=['variant_id','CHROM','POS','REF','ALT','DIS'])
+    SNPs = SNPs.replace('','-').fillna('-')
+    
+    df_scores = pd.merge(
+        df,
+        SNPs[['variant_id','CHROM','POS','REF','ALT']],
+        on=['CHROM', 'POS', 'REF', 'ALT'],
+        how='left'
+    )
+
+    return(df_scores)
 if __name__ == '__main__':
      for size in file_sizes:
           for patient in patients:
-            #    df = significant_results(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphagenome_results/{patient}_AG_results_{size}_non_significant.csv')
-            #    df = get_RSID(df)
-            #    df.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphaGenome_sig_RSID/{patient}_{size}.csv')
-            df = pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_alphaGenome_sig_RSID/{patient}_{size}',sep=',',index_col=0)
-            SNP_affected_genes.score_aggregation(df).to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Gene_expression/patient_gene_data_AG_frompatient/{patient}_{size}.csv')
+            df = get_RSID_without_API(pd.read_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_{size}_all_scores.csv'))
+            df.to_csv(f'/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_{size}_all_scores_RSID.csv')
+            
+       
