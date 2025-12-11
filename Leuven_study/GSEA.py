@@ -321,8 +321,68 @@ def plot_GSEA_results(results_path, output_path):
     fig.savefig(output_path, bbox_inches='tight', dpi=300)
     plt.close(fig)
 
+def plot_enrichment_panel(results_paths_dict, output_path):
+    """
+    Create a panel of enrichment plots for multiple input sizes
+    
+    Parameters:
+    -----------
+    results_paths_dict : dict
+        Dictionary mapping input size labels to CSV file paths
+        e.g., {'16KB': 'path/to/16kb_results.csv', '100KB': 'path/to/100kb_results.csv', ...}
+    output_path : str
+        Path to save the figure panel
+    """
+    import matplotlib.pyplot as plt
+    
+    # Create figure with 2x2 subplots
+    fig, axes = plt.subplots(2, 2, figsize=(40, 16))
+    axes = axes.flatten()
+    
+    # Input sizes in order
+    input_sizes = ['16KB', '100KB', '500KB', '1MB']
+    
+    for idx, size in enumerate(input_sizes):
+        # Read the results
+        df = pd.read_csv(results_paths_dict[size])
+        
+        # Filter for significant results
+        df_sig = df[df['Adjusted P-value'] < 0.05]
+
+        
+        # Create subplot
+        ax = barplot(df_sig,
+                     column="Adjusted P-value",
+                     ax=axes[idx],
+                     top_term=5,
+                     color={'GO_Biological_Process_2025':'darkblue'},
+                     ofname=None)
+        
+        axes[idx].set_xlabel(axes[idx].get_xlabel(), fontsize=20, fontweight='bold')
+
+
+        # Increase the size of GO term labels
+        ax.tick_params(axis='y', labelsize=20)
+        
+
+        # Add title for each subplot
+        ax.set_title(f'{size} Input Size', fontsize=30, fontweight='bold')
+    
+    # Adjust layout and save
+    plt.tight_layout()
+    fig.savefig(output_path, bbox_inches='tight', dpi=300)
+    plt.close(fig)
+
+
 
 if __name__ == '__main__':
 
-    plot_GSEA_results('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/GSEA_results/1MB_significant_results',
-                      '/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/GSEA_results/1MB_significant_plot.png') 
+    # Usage example:
+    results_dict = {
+        '16KB': '/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/two_tail/16KB_patients_significant.csv',
+        '100KB': '/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/two_tail/100KB_patients_significant.csv',
+        '500KB': '/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/two_tail/500KB_patients_significant.csv',
+        '1MB': '/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/two_tail/1MB_patients_significant.csv'
+    }
+
+    plot_enrichment_panel(results_dict, '/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/ORA_results/two_tail/enrichment_panel.png')
