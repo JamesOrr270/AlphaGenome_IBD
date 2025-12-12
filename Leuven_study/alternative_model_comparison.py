@@ -69,7 +69,7 @@ def compare_with_AlphaGenome(FIMO_grouped_df,RSAT_grouped_df,MIRANDA_grouped_df)
 
     genes = {}
     for window, df in dfs.items():
-        df = df[(df['quantile_score'] > 0.95) | (df['quantile_score'] < -0.95)]
+        df = df[(df['quantile_score'] > 0.9) | (df['quantile_score'] < -0.9)]
         df = df[['gene_name', 'RSID']]
         df = df.groupby('RSID')['gene_name'].apply(lambda x: list(set(x))).reset_index()
         df['RSID'] = df['RSID'].str.upper()
@@ -89,9 +89,114 @@ def compare_with_AlphaGenome(FIMO_grouped_df,RSAT_grouped_df,MIRANDA_grouped_df)
             merged = merged.rename(columns={'gene_name': 'AlphaGenome', 'Target Gene': model_name})
             merged_results[f'{model_name}_{window}'] = merged
 
-    print(merged_results['RSAT_16KB'])
+    for key, df in merged_results.items():
+        model_name = key.split('_')[0]  # Extract FIMO, RSAT, or MIRANDA
+        
+        df['Overlap_Count'] = df.apply(
+            lambda row: len(set(row['AlphaGenome']) & set(row[model_name])), 
+            axis=1
+        )
+        df['Model_Gene_Count'] = df[model_name].apply(len)
+        df['AG_Recall'] = df['Overlap_Count'] / df['Model_Gene_Count']
 
+    return(merged_results)
+
+def result_summary(merged_results):
+    
+    summary_data = []
+    
+    for key, df in merged_results.items():
+        model_name, window = key.split('_')[0], key.split('_')[1]
+        
+        total_snps = len(df)
+        mean_recall = df['AG_Recall'].mean()
+        
+        total_model_genes = df['Model_Gene_Count'].sum()
+        total_overlap_genes = df['Overlap_Count'].sum()
+        overall_recall = total_overlap_genes / total_model_genes if total_model_genes > 0 else 0
+        
+        summary_data.append({
+            'Model': model_name,
+            'Window': window,
+            'Total_SNPs': total_snps,
+            'Mean_Recall': mean_recall,
+            'Overall_Recall': overall_recall,
+        })
+    
+    summary_df = pd.DataFrame(summary_data)
+    
+    print(summary_df)
+
+def generate_source_SNP_impact_lists():
+    # Need to make it so that if the source gene has no name to use the orignial code as I think all the time it is just the miRNA
+    df = pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Leuven_study/Data/genetic_data/affected_proteins_TFs_mirs_uc_gandalf_revision_gene_name_both.txt',
+                     sep=',')
+    models = ['FIMO','RSAT','MIRANDA']
+
+    df['Source Gene'] = df['Source Gene'].fillna(df['Source'])
+
+    results = []  # Store all three results
+
+
+    for model in models:
+        model_df = df[df['Interaction_source'] == model]
+        model_df = model_df[['Source Gene', 'SNP']]
+        
+        grouped = model_df.groupby('SNP').agg({
+            'Source Gene': lambda x: list(set(x))
+        }).reset_index()
+
+        results.append(grouped)
+
+    return results[0], results[1], results[2]
+
+def compare_source_with_AlphaGenome(FIMO_grouped_df,RSAT_grouped_df,MIRANDA_grouped_df):
+
+    # FIMO only predicts TF binding
+
+    dfs = {
+        '16KB': pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_16KB_all_scores_RSID.csv'),
+        '100KB': pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_100KB_all_scores_RSID.csv'),
+        '500KB': pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_500KB_all_scores_RSID.csv'),
+        '1MB': pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/AlphaGenome/Results/AlphaGenome/All_Nonsig_SNPS_1MB_all_scores_RSID.csv')
+    }
+
+    genes = {}
+    for window, df in dfs.items():
+        df = df[(df['quantile_score'] > 0.95) | (df['quantile_score'] < -0.95)]
+        df = df[['gene_name', 'RSID']]
+        df = df.groupby('RSID')['gene_name'].apply(lambda x: list(set(x))).reset_index()
+        df['RSID'] = df['RSID'].str.upper()
+        genes[window] = df
+
+    models = {
+        'FIMO': FIMO_grouped_df,
+        'RSAT': RSAT_grouped_df,
+        'MIRANDA': MIRANDA_grouped_df
+    }
+
+    merged_results = {}
+    for model_name, model_df in models.items():
+        for window, gene_df in genes.items():
+            merged = pd.merge(gene_df, model_df, left_on='RSID', right_on='SNP')
+            merged = merged[['RSID', 'gene_name', 'Source Gene']]
+            merged = merged.rename(columns={'gene_name': 'AlphaGenome', 'Source Gene': model_name})
+            merged_results[f'{model_name}_{window}'] = merged
+
+    for key, df in merged_results.items():
+        model_name = key.split('_')[0]  # Extract FIMO, RSAT, or MIRANDA
+        
+        df['Overlap_Count'] = df.apply(
+            lambda row: len(set(row['AlphaGenome']) & set(row[model_name])), 
+            axis=1
+        )
+        df['Model_Gene_Count'] = df[model_name].apply(len)
+        df['AG_Recall'] = df['Overlap_Count'] / df['Model_Gene_Count']
+
+    return(merged_results)
+  
 
 if __name__ == '__main__':
     FIMO_grouped_df,RSAT_grouped_df,MIRANDA_grouped_df = generate_SNP_impact_lists()
     gene_comparison_df = compare_with_AlphaGenome(FIMO_grouped_df,RSAT_grouped_df,MIRANDA_grouped_df)
+    result_summary(gene_comparison_df)
