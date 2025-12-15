@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 tqdm.pandas()
 
@@ -69,7 +70,7 @@ def compare_with_AlphaGenome(FIMO_grouped_df,RSAT_grouped_df,MIRANDA_grouped_df)
 
     genes = {}
     for window, df in dfs.items():
-        df = df[(df['quantile_score'] > 0.9) | (df['quantile_score'] < -0.9)]
+        df = df[(df['quantile_score'] > 0.99) | (df['quantile_score'] < -0.99)]
         df = df[['gene_name', 'RSID']]
         df = df.groupby('RSID')['gene_name'].apply(lambda x: list(set(x))).reset_index()
         df['RSID'] = df['RSID'].str.upper()
@@ -97,7 +98,9 @@ def compare_with_AlphaGenome(FIMO_grouped_df,RSAT_grouped_df,MIRANDA_grouped_df)
             axis=1
         )
         df['Model_Gene_Count'] = df[model_name].apply(len)
+        df['AlphaGenome_Gene_count'] = df['AlphaGenome'].apply(len)
         df['AG_Recall'] = df['Overlap_Count'] / df['Model_Gene_Count']
+        df['Model_Recall'] = df['Overlap_Count']/df['AlphaGenome_Gene_count']
 
     return(merged_results)
 
@@ -109,24 +112,32 @@ def result_summary(merged_results):
         model_name, window = key.split('_')[0], key.split('_')[1]
         
         total_snps = len(df)
-        mean_recall = df['AG_Recall'].mean()
+        mean_AG_recall = df['AG_Recall'].mean()
+        mean_modal_recall = df['Model_Recall'].mean()
         
         total_model_genes = df['Model_Gene_Count'].sum()
         total_overlap_genes = df['Overlap_Count'].sum()
-        overall_recall = total_overlap_genes / total_model_genes if total_model_genes > 0 else 0
+        total_AG_genes = df['AlphaGenome_Gene_count'].sum()  
+
+        overall_AG_recall = total_overlap_genes / total_model_genes if total_model_genes > 0 else 0
+        overall_Model_recall = total_overlap_genes / total_AG_genes if total_AG_genes > 0 else 0  # Add this
+
         
         summary_data.append({
             'Model': model_name,
             'Window': window,
             'Total_SNPs': total_snps,
-            'Mean_Recall': mean_recall,
-            'Overall_Recall': overall_recall,
+            'Mean_AG_Recall': mean_AG_recall,
+            'Mean_modal_recall': mean_modal_recall,
+            'Overall_AG_Recall': overall_AG_recall,
+            'Overall_model_recall': overall_Model_recall
         })
     
     summary_df = pd.DataFrame(summary_data)
     
+    summary_df.to_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Leuven_study/Results/model_comparison/summary_table_0.99')
     print(summary_df)
-
+    return(summary_df)
 def generate_source_SNP_impact_lists():
     # Need to make it so that if the source gene has no name to use the orignial code as I think all the time it is just the miRNA
     df = pd.read_csv('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Leuven_study/Data/genetic_data/affected_proteins_TFs_mirs_uc_gandalf_revision_gene_name_both.txt',
@@ -195,8 +206,37 @@ def compare_source_with_AlphaGenome(FIMO_grouped_df,RSAT_grouped_df,MIRANDA_grou
 
     return(merged_results)
   
+def model_comparison_visualisation(summary_df):
+    # Define window order
+    window_order = ['16KB', '100KB', '500KB', '1MB']
+    
+    # Create figure
+    plt.figure(figsize=(10, 6))
+    
+    # Plot each model
+    for model in ['FIMO', 'RSAT', 'MIRANDA']:
+        model_data = summary_df[summary_df['Model'] == model].copy()
+        # Sort by window size
+        model_data['Window'] = pd.Categorical(model_data['Window'], categories=window_order, ordered=True)
+        model_data = model_data.sort_values('Window')
+        
+        plt.plot(model_data['Window'], model_data['Mean_AG_Recall'], 
+                marker='o', linewidth=2, markersize=8, label=model)
+    
+    plt.xlabel('Window Size', fontsize=12)
+    plt.ylabel('Mean Recall', fontsize=12)
+    plt.title('AlphaGenome Mean Recall by Model and Window Size', fontsize=14, fontweight='bold')
+    plt.legend(fontsize=11)
+    plt.grid(True, alpha=0.3)
+    plt.ylim(0, 1)
+    
+    plt.tight_layout()
+    plt.savefig('/Users/jamesorr/Documents/Imperial/Project_1/AlphaGenome_IBD/Leuven_study/Results/model_comparison/mean_recall_by_window.png', dpi=300)
+    plt.show()
+    
 
 if __name__ == '__main__':
     FIMO_grouped_df,RSAT_grouped_df,MIRANDA_grouped_df = generate_SNP_impact_lists()
     gene_comparison_df = compare_with_AlphaGenome(FIMO_grouped_df,RSAT_grouped_df,MIRANDA_grouped_df)
-    result_summary(gene_comparison_df)
+    summary_df = result_summary(gene_comparison_df)
+    model_comparison_visualisation(summary_df)
