@@ -311,6 +311,17 @@ def compare_source_with_AlphaGenome(FIMO_grouped_df,RSAT_grouped_df,MIRANDA_grou
     return(merged_results)
   
 def model_comparison_visualisation(summary_df):
+    """
+    Create line plot comparing mean AlphaGenome recall across models and window sizes.
+    
+    Generates a multi-line plot showing how AlphaGenome's recall of traditional model 
+    predictions varies across genomic window sizes (16KB to 1MB) for FIMO, RSAT, and 
+    MIRANDA. Saves high-resolution figure to the model_comparison results directory.
+    
+    Args:
+        summary_df (DataFrame): Summary statistics from result_summary() containing 
+                                Model, Window, and Mean_AG_Recall columns
+    """
 
     window_order = ['16KB', '100KB', '500KB', '1MB']
     
@@ -336,6 +347,22 @@ def model_comparison_visualisation(summary_df):
     plt.show()
     
 def fishers_exact_test(merged_results):
+    """
+    Perform pooled Fisher's Exact Test to assess enrichment of model predictions in AlphaGenome.
+    
+    For each model-window combination, aggregates predictions across all SNPs into a 2x2 
+    contingency table and tests whether AlphaGenome captures traditional model predictions 
+    (FIMO/RSAT/MIRANDA) at a rate greater than expected by chance. Uses the gene universe 
+    size from each window's full AlphaGenome predictions as the background.
+    
+    Args:
+        merged_results (dict): Dictionary of DataFrames from compare_with_AlphaGenome(), 
+                               keyed by 'MODEL_WINDOW' (e.g., 'FIMO_16KB')
+    
+    Returns:
+        list: List of dictionaries containing test results for each model-window combination,
+              including contingency table counts, odds ratios, p-values, and significance flags
+    """
 
     results=[]
 
@@ -350,7 +377,6 @@ def fishers_exact_test(merged_results):
         model_only = df['Model_Gene_Count'].sum()-both_predicted
 
         total_ag_predictions = df['AlphaGenome_Gene_count'].sum()
-        total_model_predictions = df['Model_Gene_Count'].sum()
         
         genes_predicted_by_either = total_ag_predictions + model_only
         neither_predicted = unique_gene_count - genes_predicted_by_either
